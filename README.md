@@ -16,81 +16,108 @@ interface gráfica com Java Swing.
 
 Primeira versão do projeto.
 
+O programa solicita uma senha pelo terminal e armazena a entrada em uma
+variável.
+
+Nesta versão, a senha era exibida novamente apenas para fins didáticos,
+permitindo demonstrar o funcionamento da entrada de dados.
+
+---
+
+### V0.1.0 — Geração do hash SHA-1
+
+Introdução ao conceito de função hash.
+
 Nesta versão, o programa:
 
-- executa no terminal;
-- solicita uma senha ao usuário;
-- armazena a entrada em uma variável;
-- exibe a senha recebida apenas para fins didáticos.
+- converte a senha para bytes utilizando UTF-8;
+- gera o hash SHA-1 utilizando `MessageDigest`;
+- converte os bytes resultantes para hexadecimal;
+- produz um hash SHA-1 de 40 caracteres.
 
-> A exibição da senha foi utilizada somente para demonstrar o funcionamento
-> da entrada de dados nesta primeira versão.
+Exemplo:
+
+`abc`
+
+gera:
+
+`A9993E364706816ABA3E25717850C26C9CD0D89D`
+
+> **Observação:** SHA-1 não é recomendado para armazenamento moderno de
+> senhas. Ele é utilizado neste projeto porque faz parte do protocolo de
+> consulta da API Pwned Passwords.
 
 ---
 
 ## Versão Atual
 
-### V0.1.0 — Geração do hash SHA-1
+### V0.2.0 — Preparação para k-anonymity
 
-Nesta versão, o programa deixa de exibir diretamente a senha informada e
-passa a gerar sua representação utilizando o algoritmo SHA-1.
+Nesta versão, o hash SHA-1 é dividido em duas partes para preparar uma
+consulta segura à API Pwned Passwords.
 
 O programa:
 
-- solicita uma senha ao usuário;
-- converte a senha para bytes utilizando UTF-8;
-- gera o hash SHA-1 utilizando `MessageDigest`;
-- percorre os bytes resultantes;
-- converte cada byte para sua representação hexadecimal;
-- monta e exibe o hash SHA-1 de 40 caracteres.
+- gera o SHA-1 da senha;
+- converte o resultado para hexadecimal;
+- separa os 5 primeiros caracteres do hash como prefixo;
+- mantém os 35 caracteres restantes como sufixo.
 
 ### Exemplo
 
-Entrada:
+Para a entrada:
 
 `abc`
 
-Resultado:
+o SHA-1 é:
 
 `A9993E364706816ABA3E25717850C26C9CD0D89D`
 
+O programa realiza a divisão:
+
+**Prefixo:**
+
+`A9993`
+
+**Sufixo:**
+
+`E364706816ABA3E25717850C26C9CD0D89D`
+
+A ideia é que somente o prefixo seja enviado futuramente para a API.
+
+O sufixo permanecerá no computador do usuário.
+
 ### Conceitos abordados
 
-- `MessageDigest`;
-- funções hash;
-- SHA-1;
-- `byte[]`;
-- UTF-8;
-- representação hexadecimal;
+- k-anonymity;
+- `String`;
 - `StringBuilder`;
-- `for-each`.
-
-> **Observação:** SHA-1 não é recomendado como mecanismo moderno para
-> armazenamento de senhas. Neste projeto, ele é utilizado porque faz parte
-> do protocolo de consulta utilizado pela API Pwned Passwords.
+- `toString()`;
+- `substring()`;
+- índices de uma `String`;
+- separação entre dados locais e dados enviados a um serviço externo.
 
 ---
 
 ## Próxima Versão
 
-### V0.2.0 — Implementação do k-anonymity
+### V0.3.0 — Consulta à API Pwned Passwords
 
-Na próxima versão, o hash SHA-1 será dividido em duas partes:
+Na próxima versão, o programa realizará sua primeira comunicação com um
+serviço externo.
 
-- **prefixo:** os 5 primeiros caracteres;
-- **sufixo:** os 35 caracteres restantes.
+O prefixo de 5 caracteres será utilizado para realizar uma requisição HTTP
+à API Pwned Passwords.
 
-Essa separação preparará o programa para consultar a API Pwned Passwords
-sem transmitir a senha ou o hash SHA-1 completo.
+O objetivo inicial será apenas:
 
-Exemplo:
+1. construir a URL da consulta;
+2. enviar o prefixo;
+3. realizar uma requisição HTTP;
+4. receber a resposta da API;
+5. exibir a resposta no terminal.
 
-`A9993E364706816ABA3E25717850C26C9CD0D89D`
-
-será dividido em:
-
-- Prefixo: `A9993`
-- Sufixo: `E364706816ABA3E25717850C26C9CD0D89D`
+A análise dos dados retornados será realizada em uma versão posterior.
 
 ---
 

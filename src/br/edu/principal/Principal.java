@@ -29,12 +29,17 @@ public class Principal {
 
         for (byte b : hashBytes) {
             hashHex.append(String.format("%02X", b));
-            //System.out.println(b);
         }
-        
-        
+
+        String hash = hashHex.toString();
+
+        String prefixo = hash.substring(0, 5);
+        String sufixo = hash.substring(5);
+
         System.out.println();
-        System.out.println("SHA-1: " + hashHex);
+        System.out.println("SHA-1 completo: " + hash);
+        System.out.println("Prefixo: " + prefixo);
+        System.out.println("Sufixo: " + sufixo);
 
         sc.close();
     }
