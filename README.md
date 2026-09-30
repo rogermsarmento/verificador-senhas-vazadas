@@ -16,101 +16,222 @@ interface gráfica com Java Swing.
 
 Primeira versão do projeto.
 
-O programa:
+Principais características:
 
-- executa no terminal;
-- solicita uma senha ao usuário;
-- armazena a entrada em uma variável.
-
-Nesta primeira versão, a senha era exibida novamente apenas para fins
-didáticos, permitindo visualizar o funcionamento da entrada de dados.
+- entrada de dados pelo terminal;
+- utilização de `Scanner`;
+- armazenamento da senha em uma variável `String`.
 
 ---
 
 ### V0.1.0 — Geração do hash SHA-1
 
-Nesta versão, o programa passou a:
+O programa passou a gerar localmente o hash SHA-1 da senha.
 
-- converter a senha para bytes utilizando UTF-8;
-- gerar o hash SHA-1 utilizando `MessageDigest`;
-- converter o resultado para representação hexadecimal;
-- produzir um hash SHA-1 de 40 caracteres.
+Principais características:
 
-Exemplo:
-
-`abc`
-
-gera:
-
-`A9993E364706816ABA3E25717850C26C9CD0D89D`
+- utilização de `MessageDigest`;
+- conversão da senha para bytes utilizando UTF-8;
+- geração do SHA-1;
+- conversão dos bytes para representação hexadecimal.
 
 > SHA-1 não é recomendado para armazenamento moderno de senhas.
 > Neste projeto, ele é utilizado porque faz parte do protocolo de consulta
-> da API Pwned Passwords.
+> empregado pelo Pwned Passwords.
 
 ---
 
 ### V0.2.0 — Preparação para k-anonymity
 
-Nesta versão, o hash SHA-1 passou a ser dividido em duas partes:
+O hash SHA-1 passou a ser dividido em:
 
-- **Prefixo:** primeiros 5 caracteres;
-- **Sufixo:** 35 caracteres restantes.
+- **prefixo:** primeiros 5 caracteres;
+- **sufixo:** 35 caracteres restantes.
 
-Exemplo:
-
-`A9993E364706816ABA3E25717850C26C9CD0D89D`
-
-é dividido em:
-
-- Prefixo: `A9993`
-- Sufixo: `E364706816ABA3E25717850C26C9CD0D89D`
-
-Essa divisão prepara o programa para consultar a API sem enviar a senha
-ou o hash SHA-1 completo.
+Somente o prefixo é necessário para realizar posteriormente a consulta
+ao serviço Pwned Passwords.
 
 ---
 
-## Versão Atual
-
 ### V0.3.0 — Consulta à API Pwned Passwords
 
-Nesta versão, o programa passa a realizar sua primeira comunicação com
-um serviço externo.
+O programa passou a realizar uma requisição HTTP ao serviço Pwned Passwords.
 
-Após gerar o hash SHA-1 e separar o prefixo e o sufixo, o programa utiliza
-o prefixo de 5 caracteres para realizar uma requisição HTTP à API
+Principais características:
+
+- construção da URL utilizando o prefixo do hash;
+- utilização de `URI`;
+- utilização de `HttpClient`;
+- criação de uma requisição `GET` com `HttpRequest`;
+- recebimento da resposta com `HttpResponse`;
+- leitura do código de status HTTP;
+- recebimento da resposta bruta da API.
+
+Nesta etapa, a resposta ainda não era interpretada pelo programa.
+
+---
+
+# Versão Atual
+
+## V0.4.0 — Processamento da resposta da API
+
+Nesta versão, o programa passa a interpretar a resposta recebida do
 Pwned Passwords.
-
-Fluxo atual:
-
-Senha  
-↓  
-SHA-1  
-↓  
-Prefixo + Sufixo  
-↓  
-Envio do prefixo  
-↓  
-API Pwned Passwords  
-↓  
-Resposta HTTP  
-↓  
-Exibição da resposta bruta
-
-A consulta utiliza um endereço no seguinte formato:
-
-`https://api.pwnedpasswords.com/range/PREFIXO`
-
-Somente o prefixo de 5 caracteres é utilizado na consulta.
 
 A API retorna diversas linhas no formato:
 
-`SUFIXO:QUANTIDADE`
+```text
+SUFIXO:QUANTIDADE
+```
 
-Exemplo conceitual:
+O programa percorre essas linhas e compara os sufixos retornados com
+o sufixo SHA-1 calculado localmente.
+
+### Fluxo da versão
 
 ```text
-0018A45C4D1DEF81644B54AB7F969B88D65:3
-002D8E9D51B740A5B7C1B57A8286A1747F0:12
-003A5C4D983C14E41A98D94C3C8E712FB61:7
+Senha
+  │
+  ▼
+SHA-1
+  │
+  ├──────────────┐
+  ▼              ▼
+Prefixo        Sufixo
+  │              │
+  ▼              │
+API              │
+  │              │
+  ▼              │
+Resposta         │
+  │              │
+  ▼              │
+Separar linhas   │
+  │              │
+  ▼              │
+SUFIXO:QUANTIDADE
+  │              │
+  ▼              │
+Comparar ◄───────┘
+  │
+  ├── encontrado
+  │      │
+  │      ▼
+  │   quantidade de ocorrências
+  │
+  └── não encontrado
+```
+
+### Processamento da resposta
+
+O corpo da resposta HTTP é inicialmente armazenado em uma `String`:
+
+```java
+String corpoResposta = response.body();
+```
+
+Em seguida, a resposta é dividida em linhas:
+
+```java
+String[] linhas = corpoResposta.split("\\R");
+```
+
+Cada linha é novamente dividida utilizando `:`:
+
+```java
+String[] partes = linha.split(":");
+```
+
+Obtendo:
+
+```text
+partes[0] → sufixo
+partes[1] → quantidade
+```
+
+O sufixo retornado pela API é comparado com o sufixo calculado
+localmente:
+
+```java
+if (sufixo.equals(sufixoRetornado))
+```
+
+Quando ocorre uma correspondência, o programa armazena a quantidade
+de ocorrências e encerra a busca.
+
+### Conceitos abordados
+
+- processamento de `String`;
+- método `split()`;
+- arrays de `String`;
+- `for` aprimorado;
+- comparação de `String` com `equals()`;
+- variáveis `boolean`;
+- estruturas `if/else`;
+- operador lógico `!`;
+- comando `break`;
+- conversão de `String` para `int` com `Integer.parseInt()`;
+- processamento de respostas de uma API.
+
+### Resultado
+
+Quando a senha é encontrada:
+
+```text
+ATENÇÃO: senha encontrada em vazamentos conhecidos.
+Quantidade de ocorrências: XXXXX
+```
+
+Quando não é encontrada:
+
+```text
+Senha não encontrada nos vazamentos consultados.
+```
+
+> Não encontrar uma senha na base consultada não significa que ela seja
+> necessariamente segura. O resultado indica apenas que ela não foi
+> localizada nos dados consultados pelo programa.
+
+---
+
+# Próxima Versão
+
+## V1.0.0 — Verificador completo no console
+
+A próxima versão consolidará o primeiro grande marco do projeto:
+um verificador de senhas funcional executado integralmente no terminal.
+
+A V1.0.0 deverá organizar e finalizar o fluxo:
+
+```text
+Entrada da senha
+      ↓
+Geração do SHA-1
+      ↓
+Preparação para k-anonymity
+      ↓
+Consulta HTTP
+      ↓
+Processamento da resposta
+      ↓
+Resultado para o usuário
+```
+
+Ainda manteremos a implementação procedural para consolidar o
+funcionamento completo antes da etapa de modularização.
+
+---
+
+## Tecnologias
+
+- Java
+- NetBeans
+- API Pwned Passwords
+- Git
+- GitHub
+
+---
+
+## Licença
+
+Este projeto é distribuído sob a licença MIT.

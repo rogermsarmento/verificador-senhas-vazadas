@@ -57,7 +57,6 @@ public class Principal {
                 request,
                 HttpResponse.BodyHandlers.ofString()
         );
-
         System.out.println();
         System.out.println("SHA-1 completo: " + hash);
         System.out.println("Prefixo: " + prefixo);
@@ -67,10 +66,38 @@ public class Principal {
         System.out.println();
         System.out.println("Status HTTP: " + response.statusCode());
 
-        System.out.println();
-        System.out.println("Resposta da API:");
-        System.out.println(response.body());
+        String corpoResposta = response.body();
 
+        String[] linhas = corpoResposta.split("\\R");
+
+        System.out.println();
+        System.out.println("Quantidade de linhas recebidas: " + linhas.length);
+
+        boolean encontrado = false;
+        int quantidadeEncontrada = 0;
+
+        for (String linha : linhas) {
+            String[] partes = linha.split(":");
+
+            String sufixoRetornado = partes[0];
+            int quantidade = Integer.parseInt(partes[1]);
+
+            if (sufixo.equals(sufixoRetornado)) {
+                encontrado = true;
+                quantidadeEncontrada = quantidade;
+
+                break;
+            }
+        }
+        if (encontrado) {
+            System.out.println();
+            System.out.println("ATENÇÃO: senha encontrada em vazamentos conhecidos.");
+            System.out.println("Quantidade de ocorrências: " + quantidadeEncontrada);
+        } else {
+            System.out.println();
+            System.out.println("Senha não encontrada nos vazamentos consultados.");
+            System.out.println("ATENÇÃO: Isso não siguinifica que a senha é segura!");
+        }
         sc.close();
     }
 }
