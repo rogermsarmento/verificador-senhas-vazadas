@@ -16,24 +16,25 @@ interface gráfica com Java Swing.
 
 Primeira versão do projeto.
 
-O programa solicita uma senha pelo terminal e armazena a entrada em uma
-variável.
+O programa:
 
-Nesta versão, a senha era exibida novamente apenas para fins didáticos,
-permitindo demonstrar o funcionamento da entrada de dados.
+- executa no terminal;
+- solicita uma senha ao usuário;
+- armazena a entrada em uma variável.
+
+Nesta primeira versão, a senha era exibida novamente apenas para fins
+didáticos, permitindo visualizar o funcionamento da entrada de dados.
 
 ---
 
 ### V0.1.0 — Geração do hash SHA-1
 
-Introdução ao conceito de função hash.
+Nesta versão, o programa passou a:
 
-Nesta versão, o programa:
-
-- converte a senha para bytes utilizando UTF-8;
-- gera o hash SHA-1 utilizando `MessageDigest`;
-- converte os bytes resultantes para hexadecimal;
-- produz um hash SHA-1 de 40 caracteres.
+- converter a senha para bytes utilizando UTF-8;
+- gerar o hash SHA-1 utilizando `MessageDigest`;
+- converter o resultado para representação hexadecimal;
+- produzir um hash SHA-1 de 40 caracteres.
 
 Exemplo:
 
@@ -43,93 +44,73 @@ gera:
 
 `A9993E364706816ABA3E25717850C26C9CD0D89D`
 
-> **Observação:** SHA-1 não é recomendado para armazenamento moderno de
-> senhas. Ele é utilizado neste projeto porque faz parte do protocolo de
-> consulta da API Pwned Passwords.
+> SHA-1 não é recomendado para armazenamento moderno de senhas.
+> Neste projeto, ele é utilizado porque faz parte do protocolo de consulta
+> da API Pwned Passwords.
+
+---
+
+### V0.2.0 — Preparação para k-anonymity
+
+Nesta versão, o hash SHA-1 passou a ser dividido em duas partes:
+
+- **Prefixo:** primeiros 5 caracteres;
+- **Sufixo:** 35 caracteres restantes.
+
+Exemplo:
+
+`A9993E364706816ABA3E25717850C26C9CD0D89D`
+
+é dividido em:
+
+- Prefixo: `A9993`
+- Sufixo: `E364706816ABA3E25717850C26C9CD0D89D`
+
+Essa divisão prepara o programa para consultar a API sem enviar a senha
+ou o hash SHA-1 completo.
 
 ---
 
 ## Versão Atual
 
-### V0.2.0 — Preparação para k-anonymity
-
-Nesta versão, o hash SHA-1 é dividido em duas partes para preparar uma
-consulta segura à API Pwned Passwords.
-
-O programa:
-
-- gera o SHA-1 da senha;
-- converte o resultado para hexadecimal;
-- separa os 5 primeiros caracteres do hash como prefixo;
-- mantém os 35 caracteres restantes como sufixo.
-
-### Exemplo
-
-Para a entrada:
-
-`abc`
-
-o SHA-1 é:
-
-`A9993E364706816ABA3E25717850C26C9CD0D89D`
-
-O programa realiza a divisão:
-
-**Prefixo:**
-
-`A9993`
-
-**Sufixo:**
-
-`E364706816ABA3E25717850C26C9CD0D89D`
-
-A ideia é que somente o prefixo seja enviado futuramente para a API.
-
-O sufixo permanecerá no computador do usuário.
-
-### Conceitos abordados
-
-- k-anonymity;
-- `String`;
-- `StringBuilder`;
-- `toString()`;
-- `substring()`;
-- índices de uma `String`;
-- separação entre dados locais e dados enviados a um serviço externo.
-
----
-
-## Próxima Versão
-
 ### V0.3.0 — Consulta à API Pwned Passwords
 
-Na próxima versão, o programa realizará sua primeira comunicação com um
-serviço externo.
+Nesta versão, o programa passa a realizar sua primeira comunicação com
+um serviço externo.
 
-O prefixo de 5 caracteres será utilizado para realizar uma requisição HTTP
-à API Pwned Passwords.
+Após gerar o hash SHA-1 e separar o prefixo e o sufixo, o programa utiliza
+o prefixo de 5 caracteres para realizar uma requisição HTTP à API
+Pwned Passwords.
 
-O objetivo inicial será apenas:
+Fluxo atual:
 
-1. construir a URL da consulta;
-2. enviar o prefixo;
-3. realizar uma requisição HTTP;
-4. receber a resposta da API;
-5. exibir a resposta no terminal.
+Senha  
+↓  
+SHA-1  
+↓  
+Prefixo + Sufixo  
+↓  
+Envio do prefixo  
+↓  
+API Pwned Passwords  
+↓  
+Resposta HTTP  
+↓  
+Exibição da resposta bruta
 
-A análise dos dados retornados será realizada em uma versão posterior.
+A consulta utiliza um endereço no seguinte formato:
 
----
+`https://api.pwnedpasswords.com/range/PREFIXO`
 
-## Tecnologias
+Somente o prefixo de 5 caracteres é utilizado na consulta.
 
-- Java
-- NetBeans
-- Git
-- GitHub
+A API retorna diversas linhas no formato:
 
----
+`SUFIXO:QUANTIDADE`
 
-## Licença
+Exemplo conceitual:
 
-Este projeto é distribuído sob a licença MIT.
+```text
+0018A45C4D1DEF81644B54AB7F969B88D65:3
+002D8E9D51B740A5B7C1B57A8286A1747F0:12
+003A5C4D983C14E41A98D94C3C8E712FB61:7
