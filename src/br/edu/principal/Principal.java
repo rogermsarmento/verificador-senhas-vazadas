@@ -16,104 +16,35 @@ public class Principal {
         
         try(Scanner sc = new Scanner(System.in)) {
             String senha;
-            System.out.println("==============================");
-            System.out.println("   VERIFICADOR DE SENHAS");
-            System.out.println("==============================");
-            System.out.println();
-            do {
-                System.out.print("Digite uma senha: ");
-                senha = sc.nextLine();
-                
-                if (senha.isBlank()) {
-                    System.out.println("A senha não pode ser vazia. Tente novamente.");
-                    System.out.println();
-                }
-            } while (senha.isBlank());
+            
+            exibirCabecalho();
+            
+            senha = lerSenha(sc);
+            
             System.out.println();
             System.out.println("Consultando base de vazamentos...");
+            System.out.println();
+            
             try{
-                MessageDigest md = MessageDigest.getInstance("SHA-1");
+                String hash = gerarHash(senha);
                 
-                byte[] hashBytes = md.digest(senha.getBytes(StandardCharsets.UTF_8));
+                String prefixo = obterPrefixo(hash);
+                String sufixo = obterSufixo(hash);
                 
-                StringBuilder hashHex = new StringBuilder();
-                
-                for (byte b : hashBytes) hashHex.append(String.format("%02X", b));
-                
-                String hash = hashHex.toString();
-                String prefixo = hash.substring(0, 5);
-                String sufixo = hash.substring(5);
-                
-                String url = "https://api.pwnedpasswords.com/range/" + prefixo;
-                //String url = "https://api-inexistente.pwnedpasswords.com/range/" + prefixo; // String para teste
-                
-                HttpClient client = HttpClient.newHttpClient();
-                
-                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-                
-                HttpResponse<String> response = client.send(request,HttpResponse.BodyHandlers.ofString());
+                HttpResponse<String> response = consultarApi(prefixo);
                 
                 int statusCode = response.statusCode();
                 
-                //System.out.println();
-                //System.out.println("SHA-1 completo: " + hash);
-                //System.out.println("Prefixo: " + prefixo);
-                //System.out.println("Sufixo: " + sufixo);
-                //System.out.println("URL: " + url);
-                //System.out.println();
-                //System.out.println("Status HTTP: " + response.statusCode());
+                exibirStatusHttp(statusCode);
                 
                 if (statusCode == 200) {
-                    
-                    System.out.println();
-                    System.out.println("HTTP 200 - OK: requisição realizada com sucesso.");
                     String corpoResposta = response.body();
-                
-                    String[] linhas = corpoResposta.split("\\R");//divide uma string com base em qualquer quebra de linha universal
-
-                    //System.out.println();
-                    //System.out.println("Quantidade de linhas recebidas: " + linhas.length);
-
-                    boolean encontrado = false;
-                    int quantidadeEncontrada = 0;
-
-                    for (String linha : linhas) {
-                        String[] partes = linha.split(":");
-
-                        String sufixoRetornado = partes[0];
-                        int quantidade = Integer.parseInt(partes[1]);
-
-                        if (sufixo.equals(sufixoRetornado)) {
-                            encontrado = true;
-                            quantidadeEncontrada = quantidade;
-                            break;
-                        }
-                    }
-                    if (encontrado) {
-                        System.out.println();
-                        System.out.println("ATENÇÃO: Senha encontrada em vazamentos conhecidos.");
-                        System.out.println("Quantidade de ocorrencias: " + quantidadeEncontrada);
-                    } else {
-                        System.out.println();
-                        System.out.println("Senha não encontrada nos vazamentos consultados.");
-                        //System.out.println("ATENÇÃO: Isso não siguinifica que a senha é segura!");
-                    }
+                    int quantidadeEncontrada = buscarQuantidade(corpoResposta, sufixo);
+                    exibirResultado(quantidadeEncontrada);
                 }
                 else {
-                    //System.out.println();
-                    //System.out.println("Não foi possível consultar a base de vazamentos.");
-                    //System.out.println("Código HTTP: " + statusCode);
-                    
                     System.out.println();
                     System.out.println("Erro ao consultar a base de vazamentos.");
-                    
-                    switch (statusCode) {
-                        case 400 -> System.out.println("HTTP 400 - Bad Request: requisição inválida.");
-                        case 404 -> System.out.println("HTTP 404 - Not Found: recurso não encontrado.");
-                        case 429 -> System.out.println("HTTP 429 - Too Many Requests: muitas requisições.");
-                        case 500 -> System.out.println("HTTP 500 - Internal Server Error: erro interno do servidor.");
-                        default -> System.out.println("HTTP " + statusCode + " - erro na requisição.");
-                    }
                 }
             }
             catch (NoSuchAlgorithmException e) {
@@ -130,4 +61,101 @@ public class Principal {
             }
         }
     }
+    
+    public static String obterPrefixo(String hash) {
+        return hash.substring(0, 5);
+    }
+    
+    public static String obterSufixo(String hash) {
+        return hash.substring(5);
+    }
+    
+    public static String gerarHash(String senha) throws NoSuchAlgorithmException{
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+                
+        byte[] hashBytes = md.digest(senha.getBytes(StandardCharsets.UTF_8));
+
+        StringBuilder hashHex = new StringBuilder();
+
+        for (byte b : hashBytes) hashHex.append(String.format("%02X", b));
+
+        return hashHex.toString();
+    }
+    
+    static HttpResponse<String> consultarApi(String prefixo) throws IOException, InterruptedException {
+
+        String url = "https://api.pwnedpasswords.com/range/" + prefixo;
+
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .GET()
+                .build();
+
+        return client.send(
+                request,
+                HttpResponse.BodyHandlers.ofString()
+        );
+    }
+    
+    public static void exibirStatusHttp(int statusCode){
+        switch (statusCode) {
+            case 200 -> System.out.println("HTTP 200 - OK: requisição realizada com sucesso.");
+            case 400 -> System.out.println("HTTP 400 - Bad Request: requisição inválida.");
+            case 404 -> System.out.println("HTTP 404 - Not Found: recurso não encontrado.");
+            case 429 -> System.out.println("HTTP 429 - Too Many Requests: muitas requisições.");
+            case 500 -> System.out.println("HTTP 500 - Internal Server Error: erro interno do servidor.");
+            default -> System.out.println("HTTP " + statusCode + " - erro na requisição.");
+        }
+    }
+    
+    static int buscarQuantidade(String corpoResposta, String sufixo) {
+        String[] linhas = corpoResposta.split("\\R");
+
+        for (String linha : linhas) {
+
+            String[] partes = linha.split(":");
+
+            String sufixoRetornado = partes[0];
+            int quantidade = Integer.parseInt(partes[1]);
+
+            if (sufixo.equals(sufixoRetornado)) return quantidade;
+        }
+        return 0;
+    }
+    
+    static void exibirResultado(int quantidadeEncontrada) {
+        if (quantidadeEncontrada > 0) {
+            System.out.println();
+            System.out.println("ATENÇÃO: senha encontrada em vazamentos conhecidos.");
+            System.out.println("Quantidade de ocorrências: "+ quantidadeEncontrada);
+        } else {
+            System.out.println();
+            System.out.println("Senha não encontrada nos vazamentos consultados.");
+        }
+    }
+    
+    static String lerSenha(Scanner sc) {
+        String senha;
+        do {
+            System.out.print("Digite uma senha: ");
+            senha = sc.nextLine();
+
+            if (senha.isBlank()) {
+                System.out.println("A senha não pode ser vazia. Tente novamente.");
+                System.out.println();
+            }
+        } while (senha.isBlank());
+        return senha;
+    }
+    
+    static void exibirCabecalho() {
+        System.out.println("==============================");
+        System.out.println("   VERIFICADOR DE SENHAS");
+        System.out.println("==============================");
+        System.out.println();
+    }
+    
 }
+

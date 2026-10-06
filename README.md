@@ -66,7 +66,7 @@ Geração do SHA-1
 Separação do hash
   ↓
 Prefixo (5 caracteres)
-  +
++
 Sufixo (35 caracteres)
   ↓
 Consulta HTTP utilizando somente o prefixo
@@ -195,21 +195,13 @@ A aplicação procura pelo sufixo correspondente ao hash calculado localmente.
 
 ---
 
-# 🚀 Versão Atual
-
 ## V1.0.0 — Verificador de Senhas Vazadas em Console
 
-A **V1.0.0** representa a primeira versão funcional da aplicação.
+A **V1.0.0** representa a primeira versão funcional e estável da aplicação em console.
 
-Nesta versão, todas as funcionalidades desenvolvidas nas versões anteriores foram integradas em um fluxo completo de execução.
+Nesta versão, todas as funcionalidades desenvolvidas anteriormente foram integradas em um único fluxo de execução.
 
-O usuário informa uma senha, o programa gera localmente seu hash SHA-1 e consulta a API Pwned Passwords utilizando o modelo de k-anonymity.
-
-A aplicação também passa a validar a entrada, interpretar o status da resposta HTTP e tratar possíveis falhas durante sua execução.
-
----
-
-## ✨ Principais Implementações da V1.0.0
+### Principais implementações
 
 - validação da entrada da senha;
 - utilização de `do-while`;
@@ -219,10 +211,7 @@ A aplicação também passa a validar a entrada, interpretar o status da respost
 - utilização explícita de UTF-8;
 - separação do hash em prefixo e sufixo;
 - consulta à API Pwned Passwords;
-- utilização de `HttpClient`;
-- utilização de `HttpRequest`;
-- utilização de `HttpResponse`;
-- envio de requisição HTTP GET;
+- utilização de `HttpClient`, `HttpRequest` e `HttpResponse`;
 - processamento da resposta da API;
 - identificação da quantidade de ocorrências;
 - verificação do código de status HTTP;
@@ -232,17 +221,353 @@ A aplicação também passa a validar a entrada, interpretar o status da respost
 - tratamento de `InterruptedException`;
 - apresentação de mensagens amigáveis ao usuário.
 
+Embora funcional, grande parte das responsabilidades da aplicação ainda estava concentrada no método `main()`.
+
+Essa característica motivou a modularização realizada na V1.1.0.
+
+---
+
+# 🚀 Versão Atual
+
+## V1.1.0 — Modularização com Métodos
+
+A **V1.1.0** reorganiza internamente a aplicação utilizando métodos.
+
+O comportamento externo do programa permanece essencialmente o mesmo da V1.0.0. A principal mudança está na **estrutura e organização do código**.
+
+Na versão anterior, diferentes responsabilidades estavam concentradas no método `main()`.
+
+Na V1.1.0, essas responsabilidades foram separadas em métodos específicos, tornando o código mais organizado, legível e preparado para as próximas evoluções do projeto.
+
+---
+
+## ✨ Principais Implementações da V1.1.0
+
+- criação de métodos para diferentes responsabilidades;
+- redução das responsabilidades do método `main()`;
+- utilização de parâmetros e argumentos;
+- utilização de diferentes tipos de retorno;
+- utilização de métodos `void`;
+- passagem de objetos como argumentos;
+- utilização de `return`;
+- propagação de exceções utilizando `throws`;
+- separação entre processamento e apresentação;
+- organização do fluxo principal da aplicação;
+- eliminação de algumas variáveis de controle desnecessárias;
+- melhoria da legibilidade;
+- preparação para a futura transição para Programação Orientada a Objetos.
+
+---
+
+## 🧩 Métodos Implementados
+
+A classe `Principal` passa a possuir a seguinte organização:
+
+```text
+Principal
+│
+├── main(String[] args)
+│
+├── exibirCabecalho()
+├── lerSenha(Scanner sc)
+├── gerarHash(String senha)
+├── obterPrefixo(String hash)
+├── obterSufixo(String hash)
+├── consultarApi(String prefixo)
+├── exibirStatusHttp(int statusCode)
+├── buscarQuantidade(String corpoResposta, String sufixo)
+└── exibirResultado(int quantidadeEncontrada)
+```
+
+Cada método possui uma responsabilidade específica.
+
+| Método | Responsabilidade |
+|---|---|
+| `main()` | Coordenar o fluxo principal da aplicação |
+| `exibirCabecalho()` | Apresentar o cabeçalho inicial |
+| `lerSenha()` | Ler e validar a senha informada pelo usuário |
+| `gerarHash()` | Gerar o hash SHA-1 da senha |
+| `obterPrefixo()` | Obter os 5 primeiros caracteres do hash |
+| `obterSufixo()` | Obter os 35 caracteres restantes do hash |
+| `consultarApi()` | Realizar a consulta à API Pwned Passwords |
+| `exibirStatusHttp()` | Apresentar informações sobre o status HTTP |
+| `buscarQuantidade()` | Procurar o sufixo e retornar o número de ocorrências |
+| `exibirResultado()` | Apresentar o resultado final ao usuário |
+
+---
+
+## 🧭 O `main()` como Orquestrador
+
+Na V1.0.0, o método `main()` realizava diretamente grande parte das operações da aplicação.
+
+Conceitualmente:
+
+```text
+main()
+ │
+ ├── leitura da senha
+ ├── validação
+ ├── geração do SHA-1
+ ├── separação prefixo/sufixo
+ ├── criação do cliente HTTP
+ ├── construção da requisição
+ ├── comunicação com a API
+ ├── interpretação do status HTTP
+ ├── processamento da resposta
+ └── apresentação do resultado
+```
+
+Na V1.1.0, o `main()` passa a coordenar métodos responsáveis por essas operações:
+
+```text
+main()
+ │
+ ├── exibirCabecalho()
+ ├── lerSenha()
+ ├── gerarHash()
+ ├── obterPrefixo()
+ ├── obterSufixo()
+ ├── consultarApi()
+ ├── exibirStatusHttp()
+ ├── buscarQuantidade()
+ └── exibirResultado()
+```
+
+Assim, o método principal passa a funcionar principalmente como um **orquestrador do fluxo da aplicação**.
+
+---
+
+## 🔄 Fluxo Modularizado
+
+```text
+exibirCabecalho()
+       ↓
+   lerSenha()
+       ↓
+   gerarHash()
+       ↓
+ ┌─────┴─────────┐
+ ↓               ↓
+obterPrefixo()  obterSufixo()
+ ↓               ↓
+ └───────┬───────┘
+         ↓
+   consultarApi()
+         ↓
+ exibirStatusHttp()
+         ↓
+  status HTTP 200?
+      /       \
+    sim       não
+     ↓         ↓
+buscarQuantidade()
+     ↓
+exibirResultado()
+```
+
+A organização em métodos permite compreender o fluxo geral da aplicação sem precisar observar imediatamente os detalhes internos de cada operação.
+
+---
+
+## 📥 Parâmetros e Argumentos
+
+A V1.1.0 permite trabalhar explicitamente a diferença entre **parâmetros** e **argumentos**.
+
+Por exemplo:
+
+```java
+static String gerarHash(String senha)
+```
+
+Nesse caso:
+
+```java
+String senha
+```
+
+é o parâmetro definido pelo método.
+
+Quando fazemos:
+
+```java
+String hash = gerarHash(senha);
+```
+
+o valor passado na chamada é o argumento.
+
+Outro exemplo utiliza dois parâmetros:
+
+```java
+static int buscarQuantidade(
+        String corpoResposta,
+        String sufixo
+)
+```
+
+e sua chamada pode ser realizada com:
+
+```java
+int quantidadeEncontrada =
+        buscarQuantidade(corpoResposta, sufixo);
+```
+
+---
+
+## ↩️ Retorno de Métodos
+
+Alguns métodos precisam produzir um valor que será utilizado posteriormente.
+
+Por exemplo:
+
+```java
+static String obterPrefixo(String hash) {
+    return hash.substring(0, 5);
+}
+```
+
+O método recebe uma `String` e retorna outra `String`.
+
+Sua utilização ocorre da seguinte forma:
+
+```java
+String prefixo = obterPrefixo(hash);
+```
+
+Conceitualmente:
+
+```text
+hash
+ ↓
+obterPrefixo()
+ ↓
+String
+ ↓
+prefixo
+```
+
+---
+
+## 🚫 Métodos `void`
+
+Nem todos os métodos precisam retornar valores.
+
+Por exemplo:
+
+```java
+static void exibirCabecalho() {
+    System.out.println("==============================");
+    System.out.println("   VERIFICADOR DE SENHAS");
+    System.out.println("==============================");
+    System.out.println();
+}
+```
+
+Esse método apenas executa uma ação.
+
+Outro exemplo:
+
+```java
+static void exibirResultado(int quantidadeEncontrada)
+```
+
+Ele recebe uma informação, mas sua responsabilidade é apenas apresentá-la ao usuário.
+
+---
+
+## 🧪 Diferentes Tipos de Métodos
+
+A V1.1.0 permite observar diferentes combinações de parâmetros e retornos.
+
+### Recebe parâmetro e retorna valor
+
+```java
+static String obterPrefixo(String hash)
+```
+
+### Recebe parâmetro e não retorna valor
+
+```java
+static void exibirResultado(int quantidadeEncontrada)
+```
+
+### Não recebe parâmetro e não retorna valor
+
+```java
+static void exibirCabecalho()
+```
+
+### Recebe parâmetro, retorna valor e pode propagar exceções
+
+```java
+static HttpResponse<String> consultarApi(String prefixo)
+        throws IOException, InterruptedException
+```
+
+Essas diferentes situações permitem compreender melhor a construção e utilização de métodos em Java.
+
+---
+
+## 🔎 Busca da Quantidade de Ocorrências
+
+Na V1.0.0, o processamento da resposta utilizava duas variáveis para controlar a busca:
+
+```java
+boolean encontrado;
+int quantidadeEncontrada;
+```
+
+Na V1.1.0, essa lógica foi encapsulada no método:
+
+```java
+static int buscarQuantidade(
+        String corpoResposta,
+        String sufixo
+)
+```
+
+Quando o sufixo é encontrado, o método retorna diretamente sua quantidade:
+
+```java
+if (sufixo.equals(sufixoRetornado)) {
+    return quantidade;
+}
+```
+
+Caso todo o conteúdo seja percorrido sem encontrar o sufixo:
+
+```java
+return 0;
+```
+
+Assim:
+
+```text
+quantidade > 0
+      ↓
+senha encontrada
+
+
+quantidade == 0
+      ↓
+senha não encontrada
+```
+
+Essa alteração também permite demonstrar que `return` encerra a execução do método, eliminando nesse ponto a necessidade de uma variável booleana e do comando `break`.
+
 ---
 
 ## ⌨️ Validação da Entrada
 
-A aplicação não permite que uma senha vazia ou composta somente por espaços seja consultada.
+A responsabilidade pela leitura e validação da senha passa a ser encapsulada em:
 
-A validação utiliza:
+```java
+static String lerSenha(Scanner sc)
+```
+
+O método utiliza:
 
 ```java
 do {
-
     System.out.print("Digite uma senha: ");
     senha = sc.nextLine();
 
@@ -255,42 +580,76 @@ do {
     }
 
 } while (senha.isBlank());
+
+return senha;
 ```
 
-O método `isBlank()` verifica se a `String` está vazia ou contém somente espaços em branco.
+O `Scanner` criado no `main()` é passado para o método:
+
+```java
+String senha = lerSenha(sc);
+```
+
+Isso permite reutilizar o mesmo objeto responsável pela entrada de dados.
 
 A senha não é modificada com `trim()`, pois espaços no início ou no final podem fazer parte da senha original.
 
 ---
 
-## 📡 Status HTTP
+## 📡 Consulta à API
 
-Após realizar a consulta, a aplicação verifica o código HTTP retornado pelo servidor.
+A comunicação HTTP passa a ser encapsulada no método:
 
-O código:
-
-```text
-HTTP 200 - OK
+```java
+static HttpResponse<String> consultarApi(String prefixo)
+        throws IOException, InterruptedException
 ```
 
-indica que a requisição foi processada com sucesso.
+Esse método é responsável por:
 
-Isso **não significa que a senha foi encontrada ou que ela é segura**. Significa apenas que a comunicação HTTP produziu uma resposta de sucesso.
+- construir a URL;
+- criar o `HttpClient`;
+- construir o `HttpRequest`;
+- enviar a requisição GET;
+- retornar o `HttpResponse<String>`.
 
-Alguns códigos tratados pela aplicação são:
+Conceitualmente:
 
-| Código | Significado | Descrição |
-|---:|---|---|
-| `200` | OK | Requisição realizada com sucesso |
-| `400` | Bad Request | Requisição inválida |
-| `404` | Not Found | Recurso não encontrado |
-| `429` | Too Many Requests | Muitas requisições |
-| `500` | Internal Server Error | Erro interno do servidor |
+```text
+prefixo
+   ↓
+consultarApi()
+   ↓
+HttpClient
+   ↓
+HttpRequest
+   ↓
+GET
+   ↓
+HttpResponse<String>
+   ↓
+return
+```
 
-Para os códigos diferentes de `200`, a aplicação utiliza um `switch` com a sintaxe moderna do Java:
+---
+
+## 📡 Status HTTP
+
+A apresentação dos códigos HTTP foi encapsulada em:
+
+```java
+static void exibirStatusHttp(int statusCode)
+```
+
+O método utiliza o `switch` com a sintaxe moderna do Java:
 
 ```java
 switch (statusCode) {
+
+    case 200 ->
+        System.out.println(
+                "HTTP 200 - OK: requisição realizada com sucesso."
+        );
 
     case 400 ->
         System.out.println(
@@ -314,65 +673,111 @@ switch (statusCode) {
 
     default ->
         System.out.println(
-                "HTTP " + statusCode + " - erro na requisição."
+                "HTTP " + statusCode
+                + " - código de resposta não tratado."
         );
 }
 ```
 
----
+O código:
 
-## ⚠️ Tratamento de Exceções
-
-A aplicação trata diferentes situações que podem ocorrer durante sua execução.
-
-### `NoSuchAlgorithmException`
-
-Pode ocorrer durante a obtenção da implementação do algoritmo utilizado pelo `MessageDigest`.
-
-```java
-MessageDigest.getInstance("SHA-1");
+```text
+HTTP 200 - OK
 ```
 
-### `IOException`
+indica que a requisição HTTP foi realizada com sucesso.
 
-Pode ocorrer durante operações de entrada/saída, incluindo problemas relacionados à comunicação HTTP.
+Isso **não significa que a senha foi encontrada ou que ela é segura**.
 
-### `InterruptedException`
+---
 
-Pode ocorrer caso a operação que aguarda a resposta HTTP seja interrompida.
+## ⚠️ Propagação e Tratamento de Exceções
 
-Essas exceções são tratadas com blocos `catch` específicos, evitando que erros técnicos sejam apresentados diretamente ao usuário como um grande *stack trace*.
+A modularização também permite observar a propagação de exceções entre métodos.
+
+O método:
+
+```java
+static String gerarHash(String senha)
+        throws NoSuchAlgorithmException
+```
+
+pode propagar:
+
+```java
+NoSuchAlgorithmException
+```
+
+Já:
+
+```java
+static HttpResponse<String> consultarApi(String prefixo)
+        throws IOException, InterruptedException
+```
+
+pode propagar:
+
+```java
+IOException
+InterruptedException
+```
+
+Essas exceções continuam sendo tratadas no fluxo principal da aplicação.
+
+Conceitualmente:
+
+```text
+main()
+  ↓
+consultarApi()
+  ↓
+client.send()
+  ↓
+IOException / InterruptedException
+  ↓
+throws
+  ↓
+main()
+  ↓
+catch
+```
+
+Isso permite separar duas responsabilidades:
+
+```text
+método
+   ↓
+executa sua operação
+
+main()
+   ↓
+coordena o fluxo e trata falhas
+```
 
 ---
 
 ## 🔐 k-anonymity
 
-O projeto utiliza o modelo de consulta por **k-anonymity** empregado pela API Pwned Passwords.
+O projeto continua utilizando o modelo de consulta por **k-anonymity** empregado pela API Pwned Passwords.
 
-A senha:
-
-```text
-MinhaSenha
-```
-
-não é enviada diretamente.
+A senha não é enviada diretamente.
 
 O processo ocorre localmente:
 
 ```text
 Senha
-   ↓
+  ↓
 SHA-1
-   ↓
+  ↓
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-   ↓
+  ↓
 ┌─────────┬─────────────────────────────────────┐
 │ Prefixo │                Sufixo               │
 │ 5 chars │               35 chars              │
 └─────────┴─────────────────────────────────────┘
      │
      │ enviado
-     ▼
+     ↓
     API
 
 Sufixo permanece local
@@ -423,9 +828,11 @@ A segurança de uma senha envolve outros fatores, como comprimento, previsibilid
 
 ---
 
-# 🧠 Conceitos Trabalhados até a V1.0.0
+# 🧠 Conceitos Trabalhados até a V1.1.0
 
 Durante a evolução do projeto foram utilizados conceitos como:
+
+### Fundamentos de Java
 
 - variáveis;
 - `String`;
@@ -438,7 +845,10 @@ Durante a evolução do projeto foram utilizados conceitos como:
 - `switch` com `case ->`;
 - estruturas de repetição;
 - `do-while`;
-- `for` aprimorado;
+- `for` aprimorado.
+
+### Manipulação de dados
+
 - métodos de `String`;
 - `isBlank()`;
 - `substring()`;
@@ -447,118 +857,175 @@ Durante a evolução do projeto foram utilizados conceitos como:
 - `StringBuilder`;
 - conversão entre tipos;
 - `Integer.parseInt()`;
-- codificação UTF-8;
+- codificação UTF-8.
+
+### Métodos
+
+- declaração de métodos;
+- chamada de métodos;
+- parâmetros;
+- argumentos;
+- tipos de retorno;
+- `return`;
+- `void`;
+- escopo de variáveis;
+- passagem de objetos como argumentos;
+- separação de responsabilidades;
+- modularização.
+
+### Segurança e comunicação
+
 - hashing;
 - SHA-1;
 - k-anonymity;
 - requisições HTTP;
 - método GET;
 - códigos de status HTTP;
-- consumo de API;
-- tratamento de exceções;
+- consumo de API.
+
+### Tratamento de recursos e exceções
+
 - `try-catch`;
-- `try-with-resources`.
+- `try-with-resources`;
+- `throws`;
+- propagação de exceções;
+- `NoSuchAlgorithmException`;
+- `IOException`;
+- `InterruptedException`.
 
 ---
 
 # 🏗️ Estrutura Atual
 
-Apesar de funcional, a aplicação ainda concentra grande parte de suas responsabilidades no método:
+A aplicação continua utilizando uma abordagem procedural.
+
+Todos os métodos permanecem na classe:
 
 ```java
-public static void main(String[] args)
+public class Principal
 ```
 
-O `main()` atualmente é responsável por atividades como:
+e são declarados como métodos `static`.
+
+A principal diferença em relação à V1.0.0 é a distribuição das responsabilidades:
 
 ```text
-main()
- │
- ├── leitura da senha
- │
- ├── validação
- │
- ├── geração do SHA-1
- │
- ├── separação prefixo/sufixo
- │
- ├── criação do cliente HTTP
- │
- ├── construção da requisição
- │
- ├── comunicação com a API
- │
- ├── interpretação do status HTTP
- │
- ├── processamento da resposta
- │
- └── apresentação do resultado
+Principal
+│
+├── main()
+│    └── coordena o fluxo
+│
+├── exibirCabecalho()
+│    └── apresentação inicial
+│
+├── lerSenha()
+│    └── entrada e validação
+│
+├── gerarHash()
+│    └── geração do SHA-1
+│
+├── obterPrefixo()
+│    └── preparação para k-anonymity
+│
+├── obterSufixo()
+│    └── preparação para comparação local
+│
+├── consultarApi()
+│    └── comunicação HTTP
+│
+├── exibirStatusHttp()
+│    └── apresentação do status
+│
+├── buscarQuantidade()
+│    └── processamento da resposta
+│
+└── exibirResultado()
+     └── apresentação do resultado
 ```
 
-A aplicação funciona, mas o método principal começa a acumular muitas responsabilidades.
+---
 
-Essa limitação será utilizada como motivação para a próxima evolução do projeto.
+## 🧱 Modularização não é Programação Orientada a Objetos
+
+A V1.1.0 introduz **modularização com métodos**, mas a aplicação ainda não foi reorganizada utilizando classes próprias para representar diferentes responsabilidades.
+
+Portanto:
+
+```text
+V1.0.0
+Aplicação procedural
+com lógica concentrada no main()
+        ↓
+V1.1.0
+Aplicação procedural
+modularizada com métodos
+        ↓
+V2.0.0
+Introdução à
+Programação Orientada a Objetos
+```
+
+Essa separação é proposital.
+
+Primeiro, o projeto demonstra como um programa procedural pode ser organizado utilizando métodos.
+
+Na próxima grande evolução, essas responsabilidades poderão ser distribuídas entre diferentes classes e objetos.
 
 ---
 
 # 🔜 Próxima Versão
 
-## V1.1.0 — Modularização
+## V2.0.0 — Introdução à Programação Orientada a Objetos
 
-A próxima versão terá como objetivo reorganizar o código da aplicação, reduzindo as responsabilidades atualmente concentradas no método `main()`.
+A próxima grande versão terá como objetivo transformar gradualmente a aplicação procedural modularizada em uma aplicação estruturada segundo os princípios da **Programação Orientada a Objetos**.
 
-A aplicação continuará utilizando uma abordagem procedural, mas as diferentes responsabilidades serão distribuídas em métodos.
+As responsabilidades atualmente concentradas na classe `Principal` poderão ser distribuídas entre diferentes classes.
 
-Algumas funcionalidades candidatas à modularização são:
+A V2.0.0 permitirá trabalhar conceitos como:
 
-```text
-lerSenha()
-gerarHash()
-obterPrefixo()
-obterSufixo()
-consultarApi()
-processarResposta()
-exibirStatusHttp()
-exibirResultado()
-```
+- classes;
+- objetos;
+- atributos;
+- métodos de instância;
+- instanciação;
+- construtores;
+- encapsulamento;
+- relacionamento entre objetos;
+- separação de responsabilidades entre classes.
 
-A ideia será transformar gradualmente:
-
-```text
-main()
- │
- ├── faz tudo
- ├── faz tudo
- ├── faz tudo
- └── faz tudo
-```
-
-em:
+A ideia será evoluir de:
 
 ```text
-main()
- │
- ├── lerSenha()
- ├── gerarHash()
- ├── consultarApi()
- ├── processarResposta()
- └── exibirResultado()
+Principal
+│
+├── main()
+├── gerarHash()
+├── consultarApi()
+├── buscarQuantidade()
+└── ...
 ```
 
-Essa reorganização permitirá trabalhar conceitos como:
+para uma estrutura em que diferentes objetos possuam responsabilidades específicas.
 
-- declaração de métodos;
-- parâmetros;
-- argumentos;
-- retorno de métodos;
-- `void`;
-- escopo de variáveis;
-- reutilização de código;
-- separação de responsabilidades.
+Conceitualmente:
 
-A **V1.1.0** continuará sendo uma aplicação procedural.
+```text
+Principal
+    │
+    ▼
+objetos responsáveis
+por diferentes tarefas
+    │
+    ├── processamento
+    ├── consulta
+    └── resultado
+```
 
-A introdução de **classes, objetos, atributos e métodos de instância** ficará para uma evolução posterior do projeto.
+A definição exata das classes será realizada durante o desenvolvimento da V2.0.0.
+
+A interface gráfica ainda não será o foco dessa versão.
+
+A aplicação continuará inicialmente em console para que a introdução à Programação Orientada a Objetos possa ser estudada separadamente da implementação com Java Swing.
 
 ---
 
@@ -600,6 +1067,22 @@ Interface gráfica com Swing
 Projeto desenvolvido como material didático para a disciplina de **Programação Orientada a Objetos (POO)**.
 
 A evolução incremental das versões permite observar como um programa inicialmente simples pode ser progressivamente melhorado até atingir uma estrutura mais organizada e orientada a objetos.
+
+A estratégia adotada permite estudar separadamente:
+
+```text
+fundamentos
+    ↓
+aplicação procedural
+    ↓
+modularização
+    ↓
+Programação Orientada a Objetos
+    ↓
+interface gráfica
+```
+
+Dessa forma, cada nova versão introduz novos conceitos sem esconder as limitações e decisões existentes nas versões anteriores.
 
 ---
 
