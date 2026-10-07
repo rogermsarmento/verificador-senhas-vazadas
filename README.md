@@ -4,7 +4,7 @@ Projeto desenvolvido em **Java** com o objetivo de verificar se uma senha aparec
 
 A aplicação utiliza a API **Pwned Passwords**, do serviço Have I Been Pwned, realizando a consulta por meio do modelo de **k-anonymity**.
 
-O projeto também possui finalidade didática, sendo desenvolvido de forma incremental para demonstrar a evolução de uma aplicação Java desde uma implementação procedural simples até uma aplicação estruturada com Programação Orientada a Objetos e interface gráfica.
+O projeto também possui finalidade didática, sendo desenvolvido de forma incremental para demonstrar a evolução de uma aplicação Java desde uma implementação procedural simples até uma aplicação estruturada com Programação Orientada a Objetos e, futuramente, interface gráfica.
 
 ---
 
@@ -59,9 +59,9 @@ Senha
   ↓
 Validação da entrada
   ↓
-Conversão para UTF-8
+VerificadorSenha
   ↓
-Geração do SHA-1
+Geração local do SHA-1
   ↓
 Separação do hash
   ↓
@@ -74,6 +74,8 @@ Consulta HTTP utilizando somente o prefixo
 Resposta da API
   ↓
 Comparação local dos sufixos
+  ↓
+Quantidade de ocorrências
   ↓
 Resultado
 ```
@@ -97,14 +99,13 @@ Primeira versão do projeto.
 
 ## V0.1.0 — Geração do hash SHA-1
 
-Introdução ao processo de geração do hash da senha.
+Introdução ao processo de geração local do hash da senha.
 
 ### Principais implementações
 
 - utilização da classe `MessageDigest`;
 - utilização do algoritmo SHA-1;
 - conversão da senha para bytes utilizando UTF-8;
-- geração do hash da senha;
 - utilização de `byte[]`;
 - utilização de `StringBuilder`;
 - conversão dos bytes para representação hexadecimal.
@@ -117,7 +118,6 @@ Preparação do hash para utilização do modelo de consulta por prefixo.
 
 ### Principais implementações
 
-- conversão do hash para `String`;
 - utilização do método `substring()`;
 - separação dos 5 primeiros caracteres do SHA-1;
 - armazenamento do prefixo;
@@ -145,25 +145,19 @@ Primeira comunicação da aplicação com um serviço externo.
 
 ### Principais implementações
 
-- utilização da classe `HttpClient`;
-- utilização da classe `HttpRequest`;
-- utilização da classe `HttpResponse`;
-- criação de uma requisição HTTP;
-- utilização do método HTTP GET;
-- construção da URL de consulta;
-- envio do prefixo do hash para a API;
+- utilização de `HttpClient`;
+- utilização de `HttpRequest`;
+- utilização de `HttpResponse`;
+- criação de requisição HTTP;
+- utilização do método GET;
+- construção da URL;
+- envio somente do prefixo do hash;
 - recebimento da resposta HTTP.
 
-A consulta segue o formato:
+A consulta segue conceitualmente:
 
 ```text
 /range/{prefixo}
-```
-
-Exemplo conceitual:
-
-```text
-/range/A9993
 ```
 
 ---
@@ -177,592 +171,763 @@ Implementação da análise dos dados retornados pela API.
 - obtenção do corpo da resposta HTTP;
 - separação da resposta em linhas;
 - utilização de `split()`;
-- separação entre sufixo e quantidade de ocorrências;
+- separação entre sufixo e quantidade;
 - utilização de `Integer.parseInt()`;
 - utilização do `for` aprimorado;
-- comparação entre Strings utilizando `equals()`;
-- utilização de variável booleana para controle;
-- utilização de `break`;
-- identificação da quantidade de ocorrências da senha.
+- comparação de Strings com `equals()`;
+- identificação da quantidade de ocorrências.
 
-Cada linha retornada pela API possui conceitualmente o formato:
+Cada linha retornada possui conceitualmente:
 
 ```text
 SUFIXO:QUANTIDADE
 ```
 
-A aplicação procura pelo sufixo correspondente ao hash calculado localmente.
-
 ---
 
 ## V1.0.0 — Verificador de Senhas Vazadas em Console
 
-A **V1.0.0** representa a primeira versão funcional e estável da aplicação em console.
-
-Nesta versão, todas as funcionalidades desenvolvidas anteriormente foram integradas em um único fluxo de execução.
+Primeira versão funcional e estável da aplicação.
 
 ### Principais implementações
 
-- validação da entrada da senha;
-- utilização de `do-while`;
-- utilização de `isBlank()`;
+- integração das funcionalidades anteriores;
+- validação da entrada;
+- utilização de `do-while` e `isBlank()`;
 - gerenciamento do `Scanner` com `try-with-resources`;
-- geração local do hash SHA-1;
-- utilização explícita de UTF-8;
-- separação do hash em prefixo e sufixo;
+- geração local do SHA-1;
 - consulta à API Pwned Passwords;
-- utilização de `HttpClient`, `HttpRequest` e `HttpResponse`;
-- processamento da resposta da API;
+- processamento da resposta;
 - identificação da quantidade de ocorrências;
-- verificação do código de status HTTP;
-- utilização do `switch` com sintaxe moderna (`case ->`);
-- tratamento de `NoSuchAlgorithmException`;
-- tratamento de `IOException`;
-- tratamento de `InterruptedException`;
-- apresentação de mensagens amigáveis ao usuário.
+- tratamento de códigos HTTP;
+- utilização do `switch` com `case ->`;
+- tratamento de exceções;
+- apresentação de mensagens ao usuário.
 
-Embora funcional, grande parte das responsabilidades da aplicação ainda estava concentrada no método `main()`.
+Embora funcional, grande parte das responsabilidades ainda estava concentrada no método `main()`.
 
-Essa característica motivou a modularização realizada na V1.1.0.
+---
+
+## V1.1.0 — Modularização com Métodos
+
+Reorganização da aplicação funcional utilizando métodos específicos, ainda mantendo a abordagem procedural.
+
+### Principais implementações
+
+- criação de métodos para diferentes responsabilidades;
+- redução das responsabilidades do `main()`;
+- utilização de parâmetros e argumentos;
+- utilização de diferentes tipos de retorno;
+- utilização de métodos `void`;
+- utilização de `return`;
+- propagação de exceções com `throws`;
+- separação inicial entre processamento e apresentação;
+- organização do fluxo principal da aplicação.
+
+A classe `Principal` passou a possuir:
+
+```text
+Principal
+│
+├── main()
+├── exibirCabecalho()
+├── lerSenha()
+├── gerarHash()
+├── obterPrefixo()
+├── obterSufixo()
+├── consultarApi()
+├── exibirStatusHttp()
+├── buscarQuantidade()
+└── exibirResultado()
+```
+
+Apesar da modularização, todos esses métodos ainda pertenciam à mesma classe e permaneciam `static`.
+
+Essa limitação motivou a evolução para a V2.0.0.
 
 ---
 
 # 🚀 Versão Atual
 
-## V1.1.0 — Modularização com Métodos
+## V2.0.0 — Introdução à Programação Orientada a Objetos
 
-A **V1.1.0** reorganiza internamente a aplicação utilizando métodos.
+A **V2.0.0** representa a transição do projeto de uma aplicação procedural modularizada para uma estrutura baseada em **Programação Orientada a Objetos**.
 
-O comportamento externo do programa permanece essencialmente o mesmo da V1.0.0. A principal mudança está na **estrutura e organização do código**.
+O comportamento principal da aplicação permanece o mesmo: receber uma senha, consultar a base Pwned Passwords e informar se ela aparece em vazamentos conhecidos.
 
-Na versão anterior, diferentes responsabilidades estavam concentradas no método `main()`.
+A principal evolução está na **arquitetura interna**.
 
-Na V1.1.0, essas responsabilidades foram separadas em métodos específicos, tornando o código mais organizado, legível e preparado para as próximas evoluções do projeto.
-
----
-
-## ✨ Principais Implementações da V1.1.0
-
-- criação de métodos para diferentes responsabilidades;
-- redução das responsabilidades do método `main()`;
-- utilização de parâmetros e argumentos;
-- utilização de diferentes tipos de retorno;
-- utilização de métodos `void`;
-- passagem de objetos como argumentos;
-- utilização de `return`;
-- propagação de exceções utilizando `throws`;
-- separação entre processamento e apresentação;
-- organização do fluxo principal da aplicação;
-- eliminação de algumas variáveis de controle desnecessárias;
-- melhoria da legibilidade;
-- preparação para a futura transição para Programação Orientada a Objetos.
+As responsabilidades anteriormente concentradas na classe `Principal` foram distribuídas entre diferentes classes e objetos.
 
 ---
 
-## 🧩 Métodos Implementados
+## ✨ Principais Implementações da V2.0.0
 
-A classe `Principal` passa a possuir a seguinte organização:
+- criação de classes com responsabilidades específicas;
+- criação e instanciação de objetos;
+- utilização de métodos de instância;
+- introdução de atributos;
+- utilização de construtores;
+- utilização da palavra-chave `this`;
+- aplicação de encapsulamento;
+- utilização dos modificadores `public` e `private`;
+- utilização de atributos `final`;
+- organização das classes em pacotes;
+- definição de responsabilidades entre classes;
+- melhoria da coesão;
+- criação de dependências entre objetos;
+- injeção de dependência por construtor;
+- criação da classe `VerificadorSenha`;
+- separação entre interação com o usuário e regra de verificação;
+- redução do conhecimento técnico necessário pela classe `Principal`.
+
+---
+
+# 🏗️ Estrutura da V2.0.0
+
+As classes estão organizadas em pacotes de acordo com suas responsabilidades:
+
+```text
+src/
+└── br/edu/
+    ├── principal/
+    │   └── Principal.java
+    │
+    ├── service/
+    │   ├── HashService.java
+    │   └── PwnedPasswordService.java
+    │
+    └── verificador/
+        └── VerificadorSenha.java
+```
+
+A arquitetura pode ser representada por:
+
+```text
+                     Principal
+                         │
+                         ▼
+                  VerificadorSenha
+                    /          \
+                   /            \
+                  ▼              ▼
+          HashService    PwnedPasswordService
+```
+
+---
+
+## 🧩 Responsabilidades das Classes
+
+| Classe | Responsabilidade |
+|---|---|
+| `Principal` | Inicializar a aplicação, receber a entrada e apresentar o resultado |
+| `VerificadorSenha` | Coordenar o processo completo de verificação |
+| `HashService` | Gerar o SHA-1 e separar prefixo e sufixo |
+| `PwnedPasswordService` | Realizar a consulta e interpretar os dados retornados pela API |
+
+Essa divisão permite que cada classe tenha uma responsabilidade mais bem definida.
+
+---
+
+# 🔄 Evolução da Arquitetura
+
+Na V1.1.0:
 
 ```text
 Principal
 │
-├── main(String[] args)
-│
+├── main()
 ├── exibirCabecalho()
-├── lerSenha(Scanner sc)
-├── gerarHash(String senha)
-├── obterPrefixo(String hash)
-├── obterSufixo(String hash)
-├── consultarApi(String prefixo)
-├── exibirStatusHttp(int statusCode)
-├── buscarQuantidade(String corpoResposta, String sufixo)
-└── exibirResultado(int quantidadeEncontrada)
+├── lerSenha()
+├── gerarHash()
+├── obterPrefixo()
+├── obterSufixo()
+├── consultarApi()
+├── exibirStatusHttp()
+├── buscarQuantidade()
+└── exibirResultado()
 ```
 
-Cada método possui uma responsabilidade específica.
+Todas as funcionalidades permaneciam na mesma classe.
 
-| Método | Responsabilidade |
-|---|---|
-| `main()` | Coordenar o fluxo principal da aplicação |
-| `exibirCabecalho()` | Apresentar o cabeçalho inicial |
-| `lerSenha()` | Ler e validar a senha informada pelo usuário |
-| `gerarHash()` | Gerar o hash SHA-1 da senha |
-| `obterPrefixo()` | Obter os 5 primeiros caracteres do hash |
-| `obterSufixo()` | Obter os 35 caracteres restantes do hash |
-| `consultarApi()` | Realizar a consulta à API Pwned Passwords |
-| `exibirStatusHttp()` | Apresentar informações sobre o status HTTP |
-| `buscarQuantidade()` | Procurar o sufixo e retornar o número de ocorrências |
-| `exibirResultado()` | Apresentar o resultado final ao usuário |
+Na V2.0.0:
+
+```text
+Principal
+│
+├── main()
+├── exibirCabecalho()
+├── lerSenha()
+└── exibirResultado()
+
+              │
+              ▼
+
+       VerificadorSenha
+          /        \
+         ▼          ▼
+ HashService   PwnedPasswordService
+```
+
+A quantidade total de código não necessariamente diminui.
+
+O objetivo da mudança é **organizar responsabilidades, melhorar a coesão e reduzir o acoplamento entre as diferentes partes da aplicação**.
 
 ---
 
-## 🧭 O `main()` como Orquestrador
+# 🧱 Classes e Objetos
 
-Na V1.0.0, o método `main()` realizava diretamente grande parte das operações da aplicação.
+A V2.0.0 introduz explicitamente a criação de objetos próprios da aplicação.
 
-Conceitualmente:
+Exemplo:
 
-```text
-main()
- │
- ├── leitura da senha
- ├── validação
- ├── geração do SHA-1
- ├── separação prefixo/sufixo
- ├── criação do cliente HTTP
- ├── construção da requisição
- ├── comunicação com a API
- ├── interpretação do status HTTP
- ├── processamento da resposta
- └── apresentação do resultado
+```java
+HashService hashService = new HashService();
 ```
 
-Na V1.1.0, o `main()` passa a coordenar métodos responsáveis por essas operações:
+Nesse comando:
 
 ```text
-main()
- │
- ├── exibirCabecalho()
- ├── lerSenha()
- ├── gerarHash()
- ├── obterPrefixo()
- ├── obterSufixo()
- ├── consultarApi()
- ├── exibirStatusHttp()
- ├── buscarQuantidade()
- └── exibirResultado()
-```
-
-Assim, o método principal passa a funcionar principalmente como um **orquestrador do fluxo da aplicação**.
-
----
-
-## 🔄 Fluxo Modularizado
-
-```text
-exibirCabecalho()
-       ↓
-   lerSenha()
-       ↓
-   gerarHash()
-       ↓
- ┌─────┴─────────┐
- ↓               ↓
-obterPrefixo()  obterSufixo()
- ↓               ↓
- └───────┬───────┘
-         ↓
-   consultarApi()
-         ↓
- exibirStatusHttp()
-         ↓
-  status HTTP 200?
-      /       \
-    sim       não
-     ↓         ↓
-buscarQuantidade()
+HashService
      ↓
-exibirResultado()
+tipo da referência
+
+hashService
+     ↓
+variável de referência
+
+new HashService()
+     ↓
+criação do objeto
 ```
 
-A organização em métodos permite compreender o fluxo geral da aplicação sem precisar observar imediatamente os detalhes internos de cada operação.
+Outro objeto é criado para comunicação com a API:
+
+```java
+PwnedPasswordService pwnedPasswordService
+        = new PwnedPasswordService(
+                "https://api.pwnedpasswords.com/range/"
+        );
+```
+
+Esses objetos são utilizados para construir o verificador:
+
+```java
+VerificadorSenha verificador
+        = new VerificadorSenha(
+                hashService,
+                pwnedPasswordService
+        );
+```
 
 ---
 
-## 📥 Parâmetros e Argumentos
+# ⚙️ Métodos de Instância
 
-A V1.1.0 permite trabalhar explicitamente a diferença entre **parâmetros** e **argumentos**.
+Na V1.1.0, os métodos da aplicação eram declarados como `static`.
 
-Por exemplo:
+Exemplo:
 
 ```java
 static String gerarHash(String senha)
 ```
 
-Nesse caso:
+Na V2.0.0, comportamentos relacionados a objetos passam a ser métodos de instância.
+
+Exemplo:
 
 ```java
-String senha
+public String gerarHash(String senha)
 ```
 
-é o parâmetro definido pelo método.
-
-Quando fazemos:
+A chamada passa a ocorrer através de um objeto:
 
 ```java
-String hash = gerarHash(senha);
-```
-
-o valor passado na chamada é o argumento.
-
-Outro exemplo utiliza dois parâmetros:
-
-```java
-static int buscarQuantidade(
-        String corpoResposta,
-        String sufixo
-)
-```
-
-e sua chamada pode ser realizada com:
-
-```java
-int quantidadeEncontrada =
-        buscarQuantidade(corpoResposta, sufixo);
-```
-
----
-
-## ↩️ Retorno de Métodos
-
-Alguns métodos precisam produzir um valor que será utilizado posteriormente.
-
-Por exemplo:
-
-```java
-static String obterPrefixo(String hash) {
-    return hash.substring(0, 5);
-}
-```
-
-O método recebe uma `String` e retorna outra `String`.
-
-Sua utilização ocorre da seguinte forma:
-
-```java
-String prefixo = obterPrefixo(hash);
+hashService.gerarHash(senha);
 ```
 
 Conceitualmente:
 
 ```text
-hash
- ↓
-obterPrefixo()
- ↓
-String
- ↓
-prefixo
+objeto
+  ↓
+hashService
+  ↓
+gerarHash()
 ```
 
 ---
 
-## 🚫 Métodos `void`
+# 📦 Organização em Pacotes
 
-Nem todos os métodos precisam retornar valores.
+A V2.0.0 também reorganiza as classes em diferentes pacotes.
+
+```text
+br.edu.principal
+└── Principal
+
+br.edu.service
+├── HashService
+└── PwnedPasswordService
+
+br.edu.verificador
+└── VerificadorSenha
+```
+
+O pacote:
+
+```text
+br.edu.principal
+```
+
+contém o ponto de entrada e a interação em console.
+
+O pacote:
+
+```text
+br.edu.service
+```
+
+concentra serviços técnicos utilizados pela aplicação.
+
+O pacote:
+
+```text
+br.edu.verificador
+```
+
+contém a classe responsável por coordenar a regra principal de verificação.
+
+Essa separação também permite observar na prática a utilização de `import` e os diferentes níveis de acesso entre classes de pacotes distintos.
+
+---
+
+# 🔒 Encapsulamento
+
+A V2.0.0 introduz o conceito de encapsulamento.
+
+Por exemplo, em `PwnedPasswordService`:
+
+```java
+private final String urlBase;
+```
+
+O atributo `urlBase` representa um detalhe interno do objeto.
+
+Outras classes não precisam acessá-lo diretamente.
+
+Em vez disso, utilizam os comportamentos públicos disponibilizados pela classe:
+
+```java
+public HttpResponse<String> consultarApi(String prefixo)
+```
+
+O mesmo princípio aparece em `VerificadorSenha`:
+
+```java
+private final HashService hashService;
+private final PwnedPasswordService pwnedPasswordService;
+```
+
+Essas dependências fazem parte do estado interno do objeto.
+
+> Encapsulamento não significa criar automaticamente getters e setters para todos os atributos.
+
+Um dado deve ser exposto somente quando existir uma necessidade real para isso.
+
+---
+
+# 🔑 Modificadores de Acesso
+
+Nesta versão são utilizados principalmente:
+
+```text
+public
+private
+```
+
+`public` é utilizado nos comportamentos que precisam ser acessados por outras classes.
+
+Exemplo:
+
+```java
+public String gerarHash(String senha)
+```
+
+`private` é utilizado para proteger detalhes internos:
+
+```java
+private final String urlBase;
+```
+
+Também foi estudado o acesso padrão, conhecido como **package-private**, que permite acesso entre classes pertencentes ao mesmo pacote.
+
+---
+
+# 🏗️ Construtores
+
+Os construtores passaram a ser utilizados para definir o estado inicial dos objetos.
+
+Exemplo:
+
+```java
+public PwnedPasswordService(String urlBase) {
+    this.urlBase = urlBase;
+}
+```
+
+Nesse caso, a URL é fornecida no momento da criação:
+
+```java
+new PwnedPasswordService(
+        "https://api.pwnedpasswords.com/range/"
+);
+```
+
+Outro exemplo ocorre em `VerificadorSenha`:
+
+```java
+public VerificadorSenha(
+        HashService hashService,
+        PwnedPasswordService pwnedPasswordService
+) {
+    this.hashService = hashService;
+    this.pwnedPasswordService = pwnedPasswordService;
+}
+```
+
+---
+
+# 👉 Palavra-chave `this`
+
+A palavra-chave `this` referencia o objeto atual.
 
 Por exemplo:
 
 ```java
-static void exibirCabecalho() {
-    System.out.println("==============================");
-    System.out.println("   VERIFICADOR DE SENHAS");
-    System.out.println("==============================");
-    System.out.println();
-}
+this.hashService = hashService;
 ```
 
-Esse método apenas executa uma ação.
+Temos:
 
-Outro exemplo:
+```text
+this.hashService
+      ↓
+atributo do objeto
 
-```java
-static void exibirResultado(int quantidadeEncontrada)
+hashService
+      ↓
+parâmetro recebido pelo construtor
 ```
 
-Ele recebe uma informação, mas sua responsabilidade é apenas apresentá-la ao usuário.
+Portanto, o atributo do objeto recebe a referência fornecida através do construtor.
 
 ---
 
-## 🧪 Diferentes Tipos de Métodos
+# 🔗 Dependências entre Objetos
 
-A V1.1.0 permite observar diferentes combinações de parâmetros e retornos.
+A classe `VerificadorSenha` precisa de dois objetos para realizar sua responsabilidade:
 
-### Recebe parâmetro e retorna valor
-
-```java
-static String obterPrefixo(String hash)
+```text
+VerificadorSenha
+       │
+       ├── HashService
+       └── PwnedPasswordService
 ```
 
-### Recebe parâmetro e não retorna valor
+Esses objetos são suas **dependências**.
+
+Em vez de criá-los internamente, eles são recebidos pelo construtor:
 
 ```java
-static void exibirResultado(int quantidadeEncontrada)
+new VerificadorSenha(
+        hashService,
+        pwnedPasswordService
+);
 ```
 
-### Não recebe parâmetro e não retorna valor
+Essa abordagem representa uma forma simples de **injeção de dependência por construtor**.
 
-```java
-static void exibirCabecalho()
+Conceitualmente:
+
+```text
+Principal
+   │
+   ├── cria HashService
+   │
+   ├── cria PwnedPasswordService
+   │
+   └── entrega os objetos
+              ↓
+       VerificadorSenha
 ```
 
-### Recebe parâmetro, retorna valor e pode propagar exceções
-
-```java
-static HttpResponse<String> consultarApi(String prefixo)
-        throws IOException, InterruptedException
-```
-
-Essas diferentes situações permitem compreender melhor a construção e utilização de métodos em Java.
+O `VerificadorSenha` sabe utilizar seus colaboradores, mas não precisa decidir como criá-los.
 
 ---
 
-## 🔎 Busca da Quantidade de Ocorrências
+# 🔍 Classe `HashService`
 
-Na V1.0.0, o processamento da resposta utilizava duas variáveis para controlar a busca:
+A classe `HashService` concentra as operações relacionadas ao hash:
 
-```java
-boolean encontrado;
-int quantidadeEncontrada;
+```text
+HashService
+│
+├── gerarHash()
+├── obterPrefixo()
+└── obterSufixo()
 ```
 
-Na V1.1.0, essa lógica foi encapsulada no método:
+Responsabilidades:
+
+- gerar o SHA-1;
+- converter a senha utilizando UTF-8;
+- produzir a representação hexadecimal;
+- obter os cinco primeiros caracteres;
+- obter os 35 caracteres restantes.
+
+Assim, detalhes como:
 
 ```java
-static int buscarQuantidade(
-        String corpoResposta,
-        String sufixo
-)
+MessageDigest
+StandardCharsets
+StringBuilder
 ```
 
-Quando o sufixo é encontrado, o método retorna diretamente sua quantidade:
+não precisam ser conhecidos pela classe `Principal`.
+
+---
+
+# 📡 Classe `PwnedPasswordService`
+
+A classe `PwnedPasswordService` concentra a comunicação com a API.
+
+```text
+PwnedPasswordService
+│
+├── urlBase
+├── consultarApi()
+└── buscarQuantidade()
+```
+
+Ela é responsável por:
+
+- armazenar a URL base utilizada na consulta;
+- criar o `HttpClient`;
+- criar o `HttpRequest`;
+- realizar a requisição GET;
+- obter o `HttpResponse`;
+- processar as linhas retornadas;
+- procurar pelo sufixo correspondente;
+- retornar a quantidade encontrada.
+
+Dessa forma, detalhes como:
 
 ```java
-if (sufixo.equals(sufixoRetornado)) {
-    return quantidade;
-}
+URI
+HttpClient
+HttpRequest
 ```
 
-Caso todo o conteúdo seja percorrido sem encontrar o sufixo:
+ficam concentrados no serviço responsável pela comunicação externa.
+
+---
+
+# 🔎 Classe `VerificadorSenha`
+
+A classe `VerificadorSenha` representa a coordenação da regra principal da aplicação.
+
+Seu principal método é:
+
+```java
+public int verificar(String senha)
+```
+
+Internamente, o processo ocorre da seguinte forma:
+
+```text
+senha
+  ↓
+HashService
+  ↓
+SHA-1
+  ↓
+prefixo + sufixo
+  ↓
+PwnedPasswordService
+  ↓
+consulta à API
+  ↓
+comparação do sufixo
+  ↓
+quantidade
+```
+
+Com isso, a `Principal` não precisa conhecer a sequência detalhada necessária para verificar a senha.
+
+Ela simplesmente solicita:
+
+```java
+int quantidadeEncontrada
+        = verificador.verificar(senha);
+```
+
+---
+
+# ↩️ Resultado Válido × Falha na Consulta
+
+O método `verificar()` diferencia um resultado válido de uma falha durante a consulta.
+
+```text
+Consulta realizada corretamente
+        │
+        ├── senha encontrada
+        │        ↓
+        │   return quantidade > 0
+        │
+        └── senha não encontrada
+                 ↓
+             return 0
+```
+
+Por outro lado:
+
+```text
+Consulta não realizada corretamente
+        │
+        ▼
+      throw
+        │
+        ▼
+    IOException
+```
+
+Uma resposta HTTP de erro não deve ser interpretada como:
 
 ```java
 return 0;
 ```
 
-Assim:
+Isso faria a aplicação confundir:
 
 ```text
-quantidade > 0
-      ↓
-senha encontrada
-
-
-quantidade == 0
-      ↓
 senha não encontrada
 ```
 
-Essa alteração também permite demonstrar que `return` encerra a execução do método, eliminando nesse ponto a necessidade de uma variável booleana e do comando `break`.
-
----
-
-## ⌨️ Validação da Entrada
-
-A responsabilidade pela leitura e validação da senha passa a ser encapsulada em:
-
-```java
-static String lerSenha(Scanner sc)
-```
-
-O método utiliza:
-
-```java
-do {
-    System.out.print("Digite uma senha: ");
-    senha = sc.nextLine();
-
-    if (senha.isBlank()) {
-        System.out.println(
-                "A senha não pode ser vazia. Tente novamente."
-        );
-
-        System.out.println();
-    }
-
-} while (senha.isBlank());
-
-return senha;
-```
-
-O `Scanner` criado no `main()` é passado para o método:
-
-```java
-String senha = lerSenha(sc);
-```
-
-Isso permite reutilizar o mesmo objeto responsável pela entrada de dados.
-
-A senha não é modificada com `trim()`, pois espaços no início ou no final podem fazer parte da senha original.
-
----
-
-## 📡 Consulta à API
-
-A comunicação HTTP passa a ser encapsulada no método:
-
-```java
-static HttpResponse<String> consultarApi(String prefixo)
-        throws IOException, InterruptedException
-```
-
-Esse método é responsável por:
-
-- construir a URL;
-- criar o `HttpClient`;
-- construir o `HttpRequest`;
-- enviar a requisição GET;
-- retornar o `HttpResponse<String>`.
-
-Conceitualmente:
+com:
 
 ```text
-prefixo
-   ↓
-consultarApi()
-   ↓
+não foi possível verificar a senha
+```
+
+Por isso, quando a resposta HTTP não representa uma consulta bem-sucedida, o método executa:
+
+```java
+throw new IOException(
+        "Erro HTTP ao consultar a API: " + statusCode
+);
+```
+
+Assim:
+
+| Situação | Comportamento |
+|---|---|
+| Consulta OK + senha encontrada | `return quantidade > 0` |
+| Consulta OK + senha não encontrada | `return 0` |
+| Consulta não concluída corretamente | `throw IOException` |
+
+---
+
+# ⚠️ Propagação e Tratamento de Exceções
+
+A separação em classes mantém a propagação das exceções.
+
+Por exemplo:
+
+```text
+HashService
+    │
+    │ NoSuchAlgorithmException
+    ▼
+VerificadorSenha
+    │
+    │ throws
+    ▼
+Principal
+    │
+    └── catch
+```
+
+Na comunicação:
+
+```text
+PwnedPasswordService
+    │
+    │ IOException
+    │ InterruptedException
+    ▼
+VerificadorSenha
+    │
+    │ throws
+    ▼
+Principal
+    │
+    └── catch
+```
+
+Dessa forma, as classes responsáveis pelo processamento podem propagar as falhas, enquanto a camada de interação decide como apresentá-las ao usuário.
+
+---
+
+# 🧭 A `Principal` na V2.0.0
+
+A classe `Principal` fica responsável principalmente por:
+
+```text
+Principal
+│
+├── criar os objetos
+├── conectar suas dependências
+├── exibir o cabeçalho
+├── receber a senha
+├── solicitar a verificação
+└── apresentar o resultado
+```
+
+Seu fluxo principal passa a ser conceitualmente:
+
+```text
+criar objetos
+     ↓
+exibirCabecalho()
+     ↓
+lerSenha()
+     ↓
+verificador.verificar(senha)
+     ↓
+exibirResultado()
+```
+
+A `Principal` deixa de conhecer diretamente detalhes como:
+
+```text
+MessageDigest
+StandardCharsets
+URI
 HttpClient
-   ↓
 HttpRequest
-   ↓
-GET
-   ↓
-HttpResponse<String>
-   ↓
-return
+HttpResponse
 ```
+
+Isso reduz o acoplamento da interação com os detalhes técnicos da aplicação.
 
 ---
 
-## 📡 Status HTTP
-
-A apresentação dos códigos HTTP foi encapsulada em:
-
-```java
-static void exibirStatusHttp(int statusCode)
-```
-
-O método utiliza o `switch` com a sintaxe moderna do Java:
-
-```java
-switch (statusCode) {
-
-    case 200 ->
-        System.out.println(
-                "HTTP 200 - OK: requisição realizada com sucesso."
-        );
-
-    case 400 ->
-        System.out.println(
-                "HTTP 400 - Bad Request: requisição inválida."
-        );
-
-    case 404 ->
-        System.out.println(
-                "HTTP 404 - Not Found: recurso não encontrado."
-        );
-
-    case 429 ->
-        System.out.println(
-                "HTTP 429 - Too Many Requests: muitas requisições."
-        );
-
-    case 500 ->
-        System.out.println(
-                "HTTP 500 - Internal Server Error: erro interno do servidor."
-        );
-
-    default ->
-        System.out.println(
-                "HTTP " + statusCode
-                + " - código de resposta não tratado."
-        );
-}
-```
-
-O código:
-
-```text
-HTTP 200 - OK
-```
-
-indica que a requisição HTTP foi realizada com sucesso.
-
-Isso **não significa que a senha foi encontrada ou que ela é segura**.
-
----
-
-## ⚠️ Propagação e Tratamento de Exceções
-
-A modularização também permite observar a propagação de exceções entre métodos.
-
-O método:
-
-```java
-static String gerarHash(String senha)
-        throws NoSuchAlgorithmException
-```
-
-pode propagar:
-
-```java
-NoSuchAlgorithmException
-```
-
-Já:
-
-```java
-static HttpResponse<String> consultarApi(String prefixo)
-        throws IOException, InterruptedException
-```
-
-pode propagar:
-
-```java
-IOException
-InterruptedException
-```
-
-Essas exceções continuam sendo tratadas no fluxo principal da aplicação.
-
-Conceitualmente:
-
-```text
-main()
-  ↓
-consultarApi()
-  ↓
-client.send()
-  ↓
-IOException / InterruptedException
-  ↓
-throws
-  ↓
-main()
-  ↓
-catch
-```
-
-Isso permite separar duas responsabilidades:
-
-```text
-método
-   ↓
-executa sua operação
-
-main()
-   ↓
-coordena o fluxo e trata falhas
-```
-
----
-
-## 🔐 k-anonymity
+# 🔐 k-anonymity
 
 O projeto continua utilizando o modelo de consulta por **k-anonymity** empregado pela API Pwned Passwords.
 
 A senha não é enviada diretamente.
-
-O processo ocorre localmente:
 
 ```text
 Senha
@@ -777,15 +942,15 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 └─────────┴─────────────────────────────────────┘
      │
      │ enviado
-     ↓
+     ▼
     API
 
 Sufixo permanece local
 ```
 
-A API recebe apenas o prefixo.
+A API recebe somente o prefixo.
 
-Depois que a resposta é recebida, a comparação com o sufixo é realizada localmente pela aplicação.
+Depois que a resposta é recebida, a comparação com o sufixo é realizada localmente.
 
 ---
 
@@ -798,10 +963,10 @@ Ele é utilizado neste projeto porque faz parte do mecanismo de consulta adotado
 Neste projeto:
 
 - a senha é processada localmente;
-- o hash SHA-1 é calculado localmente;
+- o SHA-1 é calculado localmente;
 - a senha original não é enviada na consulta;
-- o hash SHA-1 completo não é enviado na consulta;
-- somente os 5 primeiros caracteres do hash são utilizados para realizar a consulta;
+- o SHA-1 completo não é enviado na consulta;
+- somente os 5 primeiros caracteres são utilizados na consulta;
 - a comparação final ocorre localmente.
 
 O uso desse mecanismo reduz a exposição da informação durante a consulta.
@@ -810,7 +975,7 @@ O uso desse mecanismo reduz a exposição da informação durante a consulta.
 
 ## ⚠️ Senha não encontrada não significa senha segura
 
-Uma mensagem como:
+A mensagem:
 
 ```text
 Senha não encontrada nos vazamentos consultados.
@@ -822,17 +987,15 @@ não significa:
 Senha segura.
 ```
 
-Ela significa apenas que o hash correspondente não foi encontrado entre os registros retornados pela base consultada.
+Significa apenas que o hash correspondente não foi encontrado entre os registros consultados.
 
 A segurança de uma senha envolve outros fatores, como comprimento, previsibilidade, reutilização e práticas adequadas de autenticação.
 
 ---
 
-# 🧠 Conceitos Trabalhados até a V1.1.0
+# 🧠 Conceitos Trabalhados até a V2.0.0
 
-Durante a evolução do projeto foram utilizados conceitos como:
-
-### Fundamentos de Java
+## Fundamentos de Java
 
 - variáveis;
 - `String`;
@@ -842,12 +1005,12 @@ Durante a evolução do projeto foram utilizados conceitos como:
 - estruturas condicionais;
 - `if-else`;
 - `switch`;
-- `switch` com `case ->`;
+- `case ->`;
 - estruturas de repetição;
 - `do-while`;
 - `for` aprimorado.
 
-### Manipulação de dados
+## Manipulação de Dados
 
 - métodos de `String`;
 - `isBlank()`;
@@ -857,37 +1020,58 @@ Durante a evolução do projeto foram utilizados conceitos como:
 - `StringBuilder`;
 - conversão entre tipos;
 - `Integer.parseInt()`;
-- codificação UTF-8.
+- UTF-8.
 
-### Métodos
+## Métodos
 
-- declaração de métodos;
-- chamada de métodos;
+- declaração e chamada de métodos;
 - parâmetros;
 - argumentos;
 - tipos de retorno;
 - `return`;
 - `void`;
-- escopo de variáveis;
-- passagem de objetos como argumentos;
-- separação de responsabilidades;
-- modularização.
+- escopo;
+- métodos `static`;
+- métodos de instância;
+- propagação com `throws`.
 
-### Segurança e comunicação
+## Programação Orientada a Objetos
+
+- classes;
+- objetos;
+- referências;
+- instanciação com `new`;
+- métodos de instância;
+- atributos;
+- construtores;
+- `this`;
+- `public`;
+- `private`;
+- acesso package-private;
+- `final`;
+- encapsulamento;
+- organização em pacotes;
+- responsabilidades;
+- coesão;
+- dependências entre objetos;
+- injeção de dependência por construtor.
+
+## Segurança e Comunicação
 
 - hashing;
 - SHA-1;
 - k-anonymity;
 - requisições HTTP;
-- método GET;
+- GET;
 - códigos de status HTTP;
 - consumo de API.
 
-### Tratamento de recursos e exceções
+## Tratamento de Recursos e Exceções
 
 - `try-catch`;
 - `try-with-resources`;
 - `throws`;
+- `throw`;
 - propagação de exceções;
 - `NoSuchAlgorithmException`;
 - `IOException`;
@@ -895,61 +1079,9 @@ Durante a evolução do projeto foram utilizados conceitos como:
 
 ---
 
-# 🏗️ Estrutura Atual
+# 🧱 Evolução: Procedural → POO
 
-A aplicação continua utilizando uma abordagem procedural.
-
-Todos os métodos permanecem na classe:
-
-```java
-public class Principal
-```
-
-e são declarados como métodos `static`.
-
-A principal diferença em relação à V1.0.0 é a distribuição das responsabilidades:
-
-```text
-Principal
-│
-├── main()
-│    └── coordena o fluxo
-│
-├── exibirCabecalho()
-│    └── apresentação inicial
-│
-├── lerSenha()
-│    └── entrada e validação
-│
-├── gerarHash()
-│    └── geração do SHA-1
-│
-├── obterPrefixo()
-│    └── preparação para k-anonymity
-│
-├── obterSufixo()
-│    └── preparação para comparação local
-│
-├── consultarApi()
-│    └── comunicação HTTP
-│
-├── exibirStatusHttp()
-│    └── apresentação do status
-│
-├── buscarQuantidade()
-│    └── processamento da resposta
-│
-└── exibirResultado()
-     └── apresentação do resultado
-```
-
----
-
-## 🧱 Modularização não é Programação Orientada a Objetos
-
-A V1.1.0 introduz **modularização com métodos**, mas a aplicação ainda não foi reorganizada utilizando classes próprias para representar diferentes responsabilidades.
-
-Portanto:
+A evolução realizada até aqui pode ser resumida em:
 
 ```text
 V1.0.0
@@ -961,71 +1093,52 @@ Aplicação procedural
 modularizada com métodos
         ↓
 V2.0.0
-Introdução à
-Programação Orientada a Objetos
+Aplicação organizada
+com classes e objetos
 ```
 
-Essa separação é proposital.
+A V2.0.0 não utiliza herança, polimorfismo ou interfaces apenas para caracterizar o projeto como orientado a objetos.
 
-Primeiro, o projeto demonstra como um programa procedural pode ser organizado utilizando métodos.
-
-Na próxima grande evolução, essas responsabilidades poderão ser distribuídas entre diferentes classes e objetos.
+Os conceitos são introduzidos conforme surgem necessidades reais durante a evolução da aplicação.
 
 ---
 
 # 🔜 Próxima Versão
 
-## V2.0.0 — Introdução à Programação Orientada a Objetos
+## V3.0.0 — Interface Gráfica com Java Swing
 
-A próxima grande versão terá como objetivo transformar gradualmente a aplicação procedural modularizada em uma aplicação estruturada segundo os princípios da **Programação Orientada a Objetos**.
+A próxima grande evolução será substituir a interação exclusiva pelo console por uma **interface gráfica utilizando Java Swing**.
 
-As responsabilidades atualmente concentradas na classe `Principal` poderão ser distribuídas entre diferentes classes.
+A arquitetura criada na V2.0.0 prepara o projeto para essa mudança.
 
-A V2.0.0 permitirá trabalhar conceitos como:
+A futura interface poderá utilizar:
 
-- classes;
-- objetos;
-- atributos;
-- métodos de instância;
-- instanciação;
-- construtores;
-- encapsulamento;
-- relacionamento entre objetos;
-- separação de responsabilidades entre classes.
-
-A ideia será evoluir de:
-
-```text
-Principal
-│
-├── main()
-├── gerarHash()
-├── consultarApi()
-├── buscarQuantidade()
-└── ...
+```java
+VerificadorSenha
 ```
 
-para uma estrutura em que diferentes objetos possuam responsabilidades específicas.
-
-Conceitualmente:
+sem precisar conhecer diretamente os detalhes de:
 
 ```text
-Principal
-    │
-    ▼
-objetos responsáveis
-por diferentes tarefas
-    │
-    ├── processamento
-    ├── consulta
-    └── resultado
+SHA-1
+k-anonymity
+HttpClient
+HttpRequest
+processamento da resposta
 ```
 
-A definição exata das classes será realizada durante o desenvolvimento da V2.0.0.
+A lógica desenvolvida nas versões anteriores será preservada.
 
-A interface gráfica ainda não será o foco dessa versão.
+### Planejamento inicial
 
-A aplicação continuará inicialmente em console para que a introdução à Programação Orientada a Objetos possa ser estudada separadamente da implementação com Java Swing.
+- criação da janela principal;
+- introdução aos componentes Swing;
+- utilização de layouts;
+- criação do campo para entrada da senha;
+- criação do botão de verificação;
+- tratamento de eventos;
+- integração da interface com `VerificadorSenha`;
+- apresentação gráfica do resultado.
 
 ---
 
@@ -1056,9 +1169,41 @@ Modularização com métodos
 V2.0.0
 Programação Orientada a Objetos
     ↓
-V3.x
+V3.0.0
 Interface gráfica com Swing
+    ↓
+V3.1.0
+Campo de senha, botão e eventos
+    ↓
+V3.2.0
+Apresentação visual do resultado
+    ↓
+V3.3.0
+UX e tratamento visual de erros
+    ↓
+V4.0.0
+Versão final
 ```
+
+---
+
+## 🗺️ Roadmap
+
+| Versão | Objetivo | Situação |
+|---|---|---|
+| V0.0.0 | Entrada básica da senha | ✅ |
+| V0.1.0 | Geração do SHA-1 | ✅ |
+| V0.2.0 | Prefixo e sufixo / k-anonymity | ✅ |
+| V0.3.0 | Consulta HTTP | ✅ |
+| V0.4.0 | Processamento da resposta | ✅ |
+| V1.0.0 | Verificador funcional em console | ✅ |
+| V1.1.0 | Modularização com métodos | ✅ |
+| **V2.0.0** | **Introdução à POO e separação em classes** | **🚧 Atual** |
+| V3.0.0 | Interface gráfica com Java Swing | 🔜 |
+| V3.1.0 | Campo de senha, botão e eventos | ⏳ |
+| V3.2.0 | Apresentação visual do resultado | ⏳ |
+| V3.3.0 | UX e tratamento visual de erros | ⏳ |
+| V4.0.0 | Versão final | ⏳ |
 
 ---
 
@@ -1066,9 +1211,7 @@ Interface gráfica com Swing
 
 Projeto desenvolvido como material didático para a disciplina de **Programação Orientada a Objetos (POO)**.
 
-A evolução incremental das versões permite observar como um programa inicialmente simples pode ser progressivamente melhorado até atingir uma estrutura mais organizada e orientada a objetos.
-
-A estratégia adotada permite estudar separadamente:
+A evolução incremental permite observar como um programa inicialmente simples pode ser progressivamente reorganizado:
 
 ```text
 fundamentos
@@ -1077,12 +1220,16 @@ aplicação procedural
     ↓
 modularização
     ↓
-Programação Orientada a Objetos
+classes e objetos
+    ↓
+separação de responsabilidades
     ↓
 interface gráfica
 ```
 
 Dessa forma, cada nova versão introduz novos conceitos sem esconder as limitações e decisões existentes nas versões anteriores.
+
+A estratégia também permite comparar diferentes formas de organização do mesmo problema, observando não apenas **como fazer o programa funcionar**, mas também **como estruturar melhor o software à medida que ele evolui**.
 
 ---
 
