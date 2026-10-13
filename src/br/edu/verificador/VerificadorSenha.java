@@ -1,11 +1,12 @@
 package br.edu.verificador;
 
-import static br.edu.principal.Principal.exibirStatusHttp;
+import br.edu.model.ResultadoVerificacao;
 import br.edu.service.HashService;
 import br.edu.service.PwnedPasswordService;
+
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.net.http.HttpResponse;
+import java.security.NoSuchAlgorithmException;
 
 public class VerificadorSenha {
     
@@ -17,7 +18,7 @@ public class VerificadorSenha {
         this.pwnedPasswordService = pwnedPasswordService;
     }
     
-    public int verificar(String senha) throws NoSuchAlgorithmException, IOException, InterruptedException {
+    public ResultadoVerificacao verificar(String senha) throws NoSuchAlgorithmException, IOException, InterruptedException {
         
         String hash = hashService.gerarHash(senha);
         String prefixo = hashService.obterPrefixo(hash);
@@ -27,12 +28,15 @@ public class VerificadorSenha {
         
         int statusCode = response.statusCode();
         
-        exibirStatusHttp(statusCode);
-
+        //exibirStatusHttp(statusCode);
+        
         if (statusCode == 200) {
 
             String corpoResposta = response.body();
-            return pwnedPasswordService.buscarQuantidade(corpoResposta, sufixo);
+            
+            int quantidadeEncontrada = pwnedPasswordService.buscarQuantidade(corpoResposta, sufixo);
+            
+            return new ResultadoVerificacao(statusCode, quantidadeEncontrada);    
         }
         throw new IOException("Erro HTTP ao consultar a API: " + statusCode);
         //return 0;
