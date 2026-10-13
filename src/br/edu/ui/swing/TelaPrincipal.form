@@ -49,7 +49,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" attributes="0">
                   <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
                       <Group type="103" groupAlignment="1" max="-2" attributes="0">
                           <Component id="txtSenha" alignment="0" max="32767" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
@@ -58,10 +58,10 @@
                           </Group>
                       </Group>
                       <Component id="lblSenha" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblDescricao" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblDescricao" max="32767" attributes="0"/>
                       <Component id="lblResultadoTitulo" alignment="0" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblResultado" alignment="0" min="-2" max="-2" attributes="0"/>
                       <Component id="lblTitulo" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblResultado" alignment="0" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace pref="43" max="32767" attributes="0"/>
               </Group>
@@ -114,6 +114,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="Verificar senha"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnVerificarActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JLabel" name="lblResultadoTitulo">
           <Properties>

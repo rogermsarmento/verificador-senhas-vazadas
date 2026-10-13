@@ -1,15 +1,30 @@
 package br.edu.ui.swing;
 
+import br.edu.config.AppFactory;
+import br.edu.verificador.VerificadorSenha;
+
+import br.edu.model.ResultadoVerificacao;
+import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class TelaPrincipal extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TelaPrincipal.class.getName());
-
+    
+    private final VerificadorSenha verificador;
+    
     /**
      * Creates new form TelaPrincipal
      */
     public TelaPrincipal() {
         initComponents();
         setLocationRelativeTo(null);
+        
+        AppFactory appFactory = new AppFactory();
+        verificador = appFactory.criarVerificadorSenha();
     }
 
     /**
@@ -41,6 +56,7 @@ public class TelaPrincipal extends javax.swing.JFrame {
         lblSenha.setText("Senha");
 
         btnVerificar.setText("Verificar senha");
+        btnVerificar.addActionListener(this::btnVerificarActionPerformed);
 
         lblResultadoTitulo.setText("Resultado da verificação");
 
@@ -52,17 +68,17 @@ public class TelaPrincipal extends javax.swing.JFrame {
             pnlPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlPrincipalLayout.createSequentialGroup()
                 .addGap(36, 36, 36)
-                .addGroup(pnlPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(pnlPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(pnlPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                         .addComponent(txtSenha, javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pnlPrincipalLayout.createSequentialGroup()
                             .addGap(107, 107, 107)
                             .addComponent(btnVerificar, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(lblSenha)
-                    .addComponent(lblDescricao)
+                    .addComponent(lblDescricao, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(lblResultadoTitulo)
-                    .addComponent(lblResultado)
-                    .addComponent(lblTitulo))
+                    .addComponent(lblTitulo)
+                    .addComponent(lblResultado, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(43, Short.MAX_VALUE))
         );
         pnlPrincipalLayout.setVerticalGroup(
@@ -104,6 +120,44 @@ public class TelaPrincipal extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnVerificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnVerificarActionPerformed
+        char[] senhaDigitada = txtSenha.getPassword();
+        
+        String senha = new String(senhaDigitada);
+        
+        if (senha.isBlank()) {
+            lblResultado.setText("Informe uma senha.");
+            return;
+        }
+        //lblResultado.setText("Quantidade de caracteres: " + senha.length());
+        try {
+            ResultadoVerificacao resultado = verificador.verificar(senha);
+            
+            int quantidade = resultado.getQuantidadeEncontrada();
+            
+            //lblResultado.setText("Consulta realizada com sucesso.");
+            //lblResultado.setText("Quantidade encontrada: " + quantidade);
+            
+            if (quantidade == 0) {
+                lblResultado.setText("Senha não encontrada em vazamentos conhecidos.");
+                return;
+            }
+            NumberFormat formato = NumberFormat.getIntegerInstance(Locale.of("pt", "BR"));
+
+            lblResultado.setText("Quantidade encontrada: " + formato.format(quantidade) + " vezes em vazamentos conhecidos.");
+            
+        } catch (NoSuchAlgorithmException ex) {
+            lblResultado.setText("Erro ao gerar o hash da senha.");
+
+        } catch (IOException ex) {
+            lblResultado.setText("Erro ao consultar o serviço.");
+
+        } catch (InterruptedException ex) {
+            lblResultado.setText("Consulta interrompida.");
+            Thread.currentThread().interrupt();
+        }
+    }//GEN-LAST:event_btnVerificarActionPerformed
 
     /**
      * @param args the command line arguments
