@@ -8,86 +8,71 @@ O projeto utiliza a API **Pwned Passwords**, do serviço Have I Been Pwned, real
 
 ## 🎯 Objetivo do Projeto
 
-O **Verificador de Senhas Vazadas** permite consultar se uma senha já apareceu em vazamentos de dados conhecidos.
+O Verificador de Senhas Vazadas permite consultar se uma determinada senha já apareceu em vazamentos conhecidos.
 
-A aplicação realiza todo o processamento sensível localmente e utiliza a API Pwned Passwords apenas para consultar hashes que compartilham o mesmo prefixo.
+A aplicação realiza todo o processamento inicial da senha localmente e envia para a API apenas uma pequena parte do hash gerado, reduzindo a exposição das informações durante a consulta.
 
-Principais funcionalidades:
+Entre as principais funcionalidades estão:
 
 - leitura e validação da senha;
 - geração local do hash SHA-1;
-- separação do hash em prefixo e sufixo;
-- consulta à API Pwned Passwords;
-- processamento da resposta da API;
-- comparação local dos hashes;
-- identificação da quantidade de ocorrências;
-- tratamento de erros de comunicação;
-- apresentação do resultado ao usuário.
+- consulta à API Pwned Passwords utilizando k-anonymity;
+- identificação da quantidade de ocorrências da senha;
+- tratamento de respostas HTTP e falhas de comunicação;
+- separação entre interface, regras da aplicação e serviços externos.
 
 ---
 
 ## ⚙️ Funcionamento
 
-A senha informada pelo usuário **não é enviada diretamente para a API**.
-
-Primeiramente, a aplicação calcula localmente o hash SHA-1 da senha.
-
-Um SHA-1 possui 40 caracteres em representação hexadecimal.
-
-Exemplo:
-
-```text
-A9993E364706816ABA3E25717850C26C9CD0D89D
-```
+A senha informada pelo usuário é convertida localmente para um hash **SHA-1**, representado por 40 caracteres hexadecimais.
 
 O hash é dividido em duas partes:
 
 ```text
-Prefixo: A9993
-Sufixo:  E364706816ABA3E25717850C26C9CD0D89D
+SHA-1
+│
+├── Prefixo → primeiros 5 caracteres
+│
+└── Sufixo → 35 caracteres restantes
 ```
 
-Somente os **5 primeiros caracteres** do hash são enviados para a API Pwned Passwords.
+Somente o prefixo é enviado para a API Pwned Passwords.
 
-A consulta utiliza o endpoint:
+A API retorna os sufixos correspondentes aos hashes que possuem aquele mesmo prefixo, acompanhados da quantidade de ocorrências registradas.
 
-```text
-/range/{prefixo}
-```
-
-A API retorna os sufixos dos hashes que possuem o mesmo prefixo, juntamente com a quantidade de ocorrências registradas.
-
-A comparação entre o sufixo da senha e os dados retornados é realizada **localmente pela aplicação**.
+A comparação entre o sufixo da senha informada e os valores retornados pela API é realizada localmente pela aplicação.
 
 ---
 
 ## 🔄 Fluxo da Aplicação
 
 ```text
-Senha
-  ↓
-Validação da entrada
-  ↓
-Geração local do SHA-1
-  ↓
-Separação do hash
-  ↓
-┌──────────────┬─────────────────────────────────────┐
-│   Prefixo    │               Sufixo                │
-│ 5 caracteres │           35 caracteres             │
-└──────────────┴─────────────────────────────────────┘
-       ↓                         │
-Consulta à API                   │
-       ↓                         │
-Resposta da API                  │
-       ↓                         │
-       └──────────┬──────────────┘
-                  ↓
-        Comparação local
-                  ↓
-      Quantidade de ocorrências
-                  ↓
-               Resultado
+Senha informada pelo usuário
+            │
+            ▼
+     Validação da entrada
+            │
+            ▼
+      Geração do SHA-1
+            │
+            ▼
+   Separação do hash
+      /           \
+ prefixo         sufixo
+    │               │
+    ▼               │
+API Pwned Passwords │
+    │               │
+    ▼               │
+Lista de sufixos    │
+    │               │
+    └───────┬───────┘
+            ▼
+     Comparação local
+            │
+            ▼
+ Resultado da verificação
 ```
 
 ---
@@ -109,8 +94,6 @@ Não é necessário instalar bibliotecas externas para realizar as requisições
 
 ### 1. Clonar o repositório
 
-Abra o terminal e execute:
-
 ```bash
 git clone https://github.com/rogermsarmento/verificador-senhas-vazadas.git
 ```
@@ -121,9 +104,9 @@ git clone https://github.com/rogermsarmento/verificador-senhas-vazadas.git
 cd verificador-senhas-vazadas
 ```
 
-### 3. Abrir no NetBeans
+### 3. Abrir o projeto no NetBeans
 
-No Apache NetBeans:
+No NetBeans:
 
 ```text
 File
@@ -133,78 +116,52 @@ Open Project
 verificador-senhas-vazadas
 ```
 
-Selecione o diretório clonado e abra o projeto.
-
 ### 4. Executar a aplicação
 
-Execute a classe principal:
+A classe principal do projeto é:
 
 ```text
 br.edu.principal.Principal
 ```
 
-No NetBeans, também é possível utilizar:
+No NetBeans:
 
 ```text
-Run → Run Project
+Run
+  ↓
+Run Project
 ```
-
-A aplicação será iniciada no console e solicitará a senha que deverá ser verificada.
 
 ### 5. Informar a senha
 
-Exemplo:
-
-```text
-Digite uma senha: ********
-```
-
-A aplicação realizará a consulta e apresentará o resultado no console.
+A aplicação solicitará uma senha pelo console e realizará a consulta à base de vazamentos.
 
 ---
 
-## 🔐 Segurança e Privacidade
+## 🔒 Segurança e Privacidade
 
-O projeto utiliza o modelo de consulta por **k-anonymity** adotado pela API Pwned Passwords.
+A senha informada pelo usuário não é enviada diretamente para a API.
 
-Durante uma consulta:
-
-- a senha é processada localmente;
-- o SHA-1 é calculado localmente;
-- a senha original não é enviada para a API;
-- o hash SHA-1 completo não é enviado;
-- somente os 5 primeiros caracteres do hash são utilizados na consulta;
-- o sufixo permanece local;
-- a comparação final é realizada pela própria aplicação.
-
-O fluxo pode ser representado por:
+O processamento ocorre da seguinte forma:
 
 ```text
 Senha
-  ↓
-SHA-1 calculado localmente
-  ↓
-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  ↓
-┌─────────┬─────────────────────────────────────┐
-│ Prefixo │               Sufixo                │
-│ 5 chars │              35 chars               │
-└─────────┴─────────────────────────────────────┘
-     │                        │
-     │                        └── permanece local
-     ↓
-Pwned Passwords API
+  │
+  ▼
+SHA-1 gerado localmente
+  │
+  ├── primeiros 5 caracteres ──► API
+  │
+  └── restante do hash ─────────► permanece local
 ```
 
-> **Importante:** o algoritmo SHA-1 não é recomendado para armazenamento de senhas. Ele é utilizado neste projeto porque faz parte do mecanismo de consulta adotado pela API Pwned Passwords.
+A consulta utiliza o modelo de **k-anonymity** adotado pelo serviço Pwned Passwords.
 
-### ⚠️ Senha não encontrada não significa senha segura
+O uso de SHA-1 neste projeto ocorre exclusivamente porque esse algoritmo faz parte do protocolo utilizado pela API para consulta de senhas comprometidas.
 
-Uma resposta indicando que a senha não foi encontrada significa apenas que seu hash não foi localizado entre os registros consultados.
+**SHA-1 não é recomendado para armazenamento de senhas em sistemas reais.**
 
-Isso **não garante que a senha seja segura**.
-
-A segurança de uma senha também depende de fatores como comprimento, previsibilidade, reutilização e boas práticas de autenticação.
+Além disso, uma senha não encontrada na base consultada **não deve ser considerada automaticamente segura**. O resultado indica apenas que ela não foi identificada entre os vazamentos disponíveis no serviço consultado.
 
 ---
 
@@ -221,64 +178,42 @@ A segurança de uma senha também depende de fatores como comprimento, previsibi
 | **V1.1.0** | Modularização das funcionalidades da aplicação |
 | **V2.0.0** | Reestruturação da aplicação utilizando Programação Orientada a Objetos |
 | **V2.1.0** | Separação da interface de console e representação do resultado da verificação |
+| **V3.0.0** | Preparação da arquitetura para interfaces gráficas Swing e centralização da criação das dependências |
 
 ---
 
 # 🚀 Versão Atual
 
-## V2.1.0 — Separação da Interface de Console
+## V3.0.0 — Base para Interface Gráfica
 
-A **V2.1.0** aprimora a organização interna introduzida na V2.0.0, separando a interação com o usuário das classes responsáveis pelo processamento e pela regra de verificação.
+A V3.0.0 prepara a arquitetura da aplicação para a implementação de interfaces gráficas com **Java Swing**.
 
-As operações relacionadas ao console foram concentradas na classe:
-
-```text
-ConsoleUI
-```
-
-A classe `VerificadorSenha` permanece responsável pela coordenação da verificação, sem depender diretamente da interface utilizada para apresentar as informações.
-
-Também foi criada a classe:
+A principal alteração desta versão é a introdução da classe:
 
 ```text
-ResultadoVerificacao
+AppFactory
 ```
 
-responsável por representar o resultado produzido pela verificação.
+responsável por centralizar a criação e configuração das dependências utilizadas pelo verificador.
 
-Ela mantém as informações:
+A aplicação continua funcional por meio da interface de console. Nenhum componente gráfico é introduzido nesta versão.
 
-```text
-ResultadoVerificacao
-│
-├── statusCode
-└── quantidadeEncontrada
-```
+Dessa forma, a V3.0.0 estabelece um ponto comum para o desenvolvimento de duas abordagens independentes:
 
-Com essa estrutura, `VerificadorSenha` retorna um objeto contendo os dados necessários para que a camada de interface decida como apresentá-los ao usuário.
-
-### Principais alterações
-
-- criação do pacote `br.edu.ui`;
-- criação da classe `ConsoleUI`;
-- centralização das operações de entrada e saída do console;
-- criação do pacote `br.edu.model`;
-- criação da classe `ResultadoVerificacao`;
-- remoção da apresentação direta de informações de `VerificadorSenha`;
-- retorno estruturado do resultado da verificação;
-- redução do acoplamento entre regra de negócio e interface;
-- preparação da arquitetura para novas formas de interação com o usuário.
+- interface construída com o **GUI Builder do NetBeans**;
+- interface construída diretamente em **código Java**.
 
 ---
 
-# 🏗️ Estrutura da V2.1.0
-
-A aplicação está organizada nos seguintes pacotes:
+# 🏗️ Estrutura da V3.0.0
 
 ```text
 src/
 └── br/
     └── edu/
+        ├── config/
+        │   └── AppFactory.java
+        │
         ├── model/
         │   └── ResultadoVerificacao.java
         │
@@ -300,145 +235,179 @@ src/
 
 | Classe | Responsabilidade |
 |---|---|
-| `Principal` | Inicializar os componentes e coordenar o fluxo principal da aplicação |
-| `ConsoleUI` | Realizar a interação com o usuário por meio do console |
+| `Principal` | Inicializar e coordenar a execução da aplicação em console |
+| `AppFactory` | Criar e configurar as dependências utilizadas pela aplicação |
+| `ConsoleUI` | Realizar a interação com o usuário pelo console |
+| `ResultadoVerificacao` | Representar o resultado retornado pela verificação |
 | `VerificadorSenha` | Coordenar o processo de verificação da senha |
-| `ResultadoVerificacao` | Representar os dados produzidos pela verificação |
-| `HashService` | Gerar o SHA-1 e separar o hash em prefixo e sufixo |
-| `PwnedPasswordService` | Realizar a comunicação com a API e processar os dados retornados |
-
-A arquitetura atual pode ser representada por:
-
-```text
-                   ┌───────────────┐
-                   │   Principal   │
-                   └───────┬───────┘
-                           │
-                 ┌─────────┴─────────┐
-                 ▼                   ▼
-            ConsoleUI         VerificadorSenha
-                                     │
-                           ┌─────────┴─────────┐
-                           ▼                   ▼
-                     HashService     PwnedPasswordService
-
-VerificadorSenha → ResultadoVerificacao → Principal → ConsoleUI
-```
-
-`ResultadoVerificacao` permite transportar os dados da verificação sem criar uma dependência direta entre `VerificadorSenha` e `ConsoleUI`.
+| `HashService` | Gerar e dividir o hash SHA-1 |
+| `PwnedPasswordService` | Consultar e processar os dados da API Pwned Passwords |
 
 ---
 
 # 🔄 Evolução da Arquitetura
 
-A arquitetura do projeto evoluiu progressivamente para reduzir a concentração de responsabilidades.
+## V1.0.0
 
-### V1.0.0
-
-```text
-Principal
-│
-└── main()
-    ├── entrada
-    ├── hash
-    ├── consulta HTTP
-    ├── processamento
-    └── apresentação
-```
-
-A aplicação já era funcional, mas o fluxo estava concentrado no método `main()`.
-
-### V1.1.0
+A aplicação possuía o fluxo completo de verificação em console, concentrando diferentes responsabilidades em uma mesma estrutura.
 
 ```text
 Principal
-│
-├── main()
-├── exibirCabecalho()
-├── lerSenha()
-├── gerarHash()
-├── obterPrefixo()
-├── obterSufixo()
-├── consultarApi()
-├── exibirStatusHttp()
-├── buscarQuantidade()
-└── exibirResultado()
+   │
+   ├── entrada
+   ├── hash
+   ├── requisição HTTP
+   ├── processamento
+   └── saída
 ```
 
-As funcionalidades foram modularizadas em métodos, ainda dentro da mesma classe.
+## V1.1.0
 
-### V2.0.0
+As principais funcionalidades foram separadas em métodos, reduzindo a concentração de código no método `main`.
 
 ```text
-                     Principal
+Principal
+   │
+   ├── métodos de entrada
+   ├── métodos de processamento
+   ├── métodos de consulta
+   └── métodos de saída
+```
+
+## V2.0.0
+
+A aplicação passou a utilizar classes com responsabilidades específicas.
+
+```text
+Principal
+    │
+    ▼
+VerificadorSenha
+    │
+    ├───────────────┐
+    ▼               ▼
+HashService   PwnedPasswordService
+```
+
+## V2.1.0
+
+A interação com o console foi separada da lógica de verificação e o resultado passou a ser representado por um objeto específico.
+
+```text
+              Principal
+              /       \
+             ▼         ▼
+       ConsoleUI   VerificadorSenha
+                         │
+                 ┌───────┴────────┐
+                 ▼                ▼
+           HashService   PwnedPasswordService
+```
+
+O resultado da verificação é transportado por:
+
+```text
+VerificadorSenha
+       │
+       ▼
+ResultadoVerificacao
+       │
+       ▼
+Principal
+       │
+       ▼
+ConsoleUI
+```
+
+## V3.0.0
+
+A criação das dependências foi centralizada na `AppFactory`.
+
+```text
+              Principal
+              /       \
+             ▼         ▼
+       ConsoleUI     AppFactory
                          │
                          ▼
                   VerificadorSenha
                     /          \
-                   /            \
-                  ▼              ▼
-          HashService    PwnedPasswordService
+                   ▼            ▼
+            HashService   PwnedPasswordService
 ```
 
-As responsabilidades de processamento e comunicação foram distribuídas entre classes específicas.
-
-### V2.1.0
-
-```text
-                         Principal
-                        /         \
-                       ▼           ▼
-                 ConsoleUI    VerificadorSenha
-                                   /       \
-                                  ▼         ▼
-                           HashService   PwnedPasswordService
-                                   \       /
-                                    ▼     ▼
-                              ResultadoVerificacao
-```
-
-A interface de console passa a possuir uma responsabilidade própria, enquanto o resultado da verificação é representado por um objeto independente.
-
-Essa organização reduz o acoplamento entre a lógica da aplicação e a forma utilizada para interagir com o usuário.
+Com isso, os detalhes necessários para construir um `VerificadorSenha` ficam centralizados em um único ponto da aplicação.
 
 ---
 
-# 🔜 Próxima Versão
+# 🔜 Próxima Evolução
 
-## V3.0.0 — Interface Gráfica com Java Swing
-
-A próxima evolução do projeto será a implementação de uma **interface gráfica utilizando Java Swing**.
-
-A arquitetura atual permite que a nova interface utilize a mesma lógica de verificação existente, sem incorporar à interface os detalhes relacionados a SHA-1, k-anonymity ou comunicação HTTP.
-
-A evolução prevista é:
+A partir da V3.0.0, o desenvolvimento da interface gráfica será dividido em **duas linhas independentes**.
 
 ```text
-ConsoleUI ──────┐
-                │
-                ▼
-         VerificadorSenha
-                ▲
-                │
-SwingUI ────────┘
+                         V3.0.0
+                            │
+              ┌─────────────┴─────────────┐
+              ▼                           ▼
+       GUI Builder                  Swing por código
+       do NetBeans
+              │                           │
+        V3.1.0-GUI                  V3.1.0-CODE
+              │                           │
+        V3.2.0-GUI                  V3.2.0-CODE
+              │                           │
+        V3.3.0-GUI                  V3.3.0-CODE
 ```
 
-A V3.0.0 deverá incluir:
+As duas linhas utilizarão o mesmo núcleo da aplicação e buscarão implementar os mesmos requisitos funcionais.
 
-- criação da janela principal;
-- utilização de componentes Java Swing;
-- organização da interface com layouts;
-- campo para entrada da senha;
-- botão para iniciar a verificação;
+## GUI Builder
+
+A primeira abordagem utilizará o **GUI Builder do NetBeans** para construção da interface.
+
+Essa linha será mantida na branch:
+
+```text
+swing-gui-builder
+```
+
+A implementação utilizará a estrutura gráfica gerenciada pelo NetBeans, incluindo os arquivos `.form` associados às telas.
+
+## Swing por código
+
+A segunda abordagem construirá a interface diretamente por meio de **código Java**.
+
+Essa linha será mantida na branch:
+
+```text
+swing-code
+```
+
+Os componentes Swing, layouts e eventos serão configurados diretamente no código-fonte, sem utilização do GUI Builder.
+
+## Comparação
+
+As duas implementações serão mantidas separadamente para permitir a comparação entre as abordagens em aspectos como:
+
+- estrutura do projeto;
+- organização do código;
+- utilização de layouts;
 - tratamento de eventos;
-- integração com `VerificadorSenha`;
-- apresentação gráfica do resultado;
-- tratamento visual de erros e mensagens.
+- código gerado automaticamente;
+- controle sobre os componentes;
+- manutenção;
+- produtividade no desenvolvimento.
 
-A lógica de geração do hash, consulta à API e processamento dos resultados permanecerá independente da interface gráfica.
+As duas linhas partirão exatamente da mesma versão:
+
+```text
+v3.0.0
+```
 
 ---
 
-## 📄 Licença
+# 📄 Licença
 
 Este projeto é distribuído sob a licença **MIT**.
+
+Consulte o arquivo `LICENSE` para mais informações.
