@@ -14,9 +14,10 @@ Desenvolver uma aplicação capaz de verificar se uma senha já apareceu em vaza
 - orientação a objetos;
 - separação de responsabilidades;
 - interfaces gráficas com Java Swing;
-- versionamento com Git e GitHub.
+- versionamento com Git e GitHub;
+- geração e distribuição de aplicações Java por meio de arquivos JAR.
 
-O projeto evolui progressivamente da aplicação em terminal até uma aplicação com interface gráfica.
+O projeto evolui progressivamente de uma aplicação executada no terminal até uma aplicação com interface gráfica.
 
 ---
 
@@ -135,30 +136,41 @@ HashService   PwnedPasswordService
 ## 📁 Estrutura do projeto
 
 ```text
-src/
-└── br/
-    └── edu/
-        ├── config/
-        │   └── AppFactory.java
-        │
-        ├── model/
-        │   └── ResultadoVerificacao.java
-        │
-        ├── principal/
-        │   └── Principal.java
-        │
-        ├── service/
-        │   ├── HashService.java
-        │   └── PwnedPasswordService.java
-        │
-        ├── ui/
-        │   ├── ConsoleUI.java
-        │   └── swing/
-        │       ├── TelaPrincipal.java
-        │       └── TelaPrincipal.form
-        │
-        └── verificador/
-            └── VerificadorSenha.java
+ProjetoVerificaSenhasVazadas/
+│
+├── src/
+│   └── br/
+│       └── edu/
+│           ├── config/
+│           │   └── AppFactory.java
+│           │
+│           ├── model/
+│           │   └── ResultadoVerificacao.java
+│           │
+│           ├── principal/
+│           │   └── Principal.java
+│           │
+│           ├── service/
+│           │   ├── HashService.java
+│           │   └── PwnedPasswordService.java
+│           │
+│           ├── ui/
+│           │   ├── ConsoleUI.java
+│           │   └── swing/
+│           │       ├── TelaPrincipal.java
+│           │       └── TelaPrincipal.form
+│           │
+│           └── verificador/
+│               └── VerificadorSenha.java
+│
+├── nbproject/
+│
+├── release/
+│   └── VerificadorSenhasVazadas-v3.3.0-gui.jar
+│
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 O arquivo:
@@ -167,18 +179,35 @@ O arquivo:
 TelaPrincipal.form
 ```
 
-é utilizado pelo GUI Builder do NetBeans para armazenar informações sobre a construção visual do formulário.
+é utilizado pelo GUI Builder do NetBeans para armazenar as informações da construção visual do formulário.
+
+As pastas `build/` e `dist/` são geradas automaticamente durante a compilação e não são versionadas.
+
+A pasta:
+
+```text
+release/
+```
+
+é utilizada para disponibilizar versões executáveis do projeto.
 
 ---
 
 ## 📋 Requisitos
 
-Para executar o projeto:
+### Para executar o JAR
+
+- Java 17 ou superior;
+- conexão com a Internet.
+
+### Para desenvolver o projeto
 
 - JDK 17 ou superior;
 - Apache NetBeans;
 - Git;
-- conexão com a Internet para realizar consultas à API.
+- conexão com a Internet.
+
+O projeto pode ser desenvolvido utilizando um JDK mais recente, mas o **Source/Binary Format** está configurado para **JDK 17**, permitindo a geração de bytecode compatível com Java 17 ou superior.
 
 ---
 
@@ -211,6 +240,41 @@ br.edu.principal.Principal
 ```
 
 Ao executar o projeto, a interface gráfica será aberta automaticamente.
+
+---
+
+## 📦 Executando pelo JAR
+
+A versão gráfica também está disponível como um arquivo JAR executável:
+
+```text
+release/
+└── VerificadorSenhasVazadas-v3.3.0-gui.jar
+```
+
+Para executar o JAR é necessário possuir **Java 17 ou superior** instalado.
+
+A partir da raiz do projeto, execute:
+
+```bash
+java -jar release/VerificadorSenhasVazadas-v3.3.0-gui.jar
+```
+
+Também é possível entrar na pasta `release`:
+
+```bash
+cd release
+```
+
+e executar:
+
+```bash
+java -jar VerificadorSenhasVazadas-v3.3.0-gui.jar
+```
+
+Dependendo da configuração do sistema operacional, o arquivo `.jar` também poderá ser iniciado diretamente pela interface gráfica.
+
+A execução pelo terminal é recomendada para facilitar a identificação de eventuais mensagens de erro relacionadas à instalação ou à versão do Java.
 
 ---
 
@@ -255,13 +319,13 @@ O número apresentado depende das informações disponíveis no serviço no mome
 | `V3.0.0` | Base comum para interfaces gráficas |
 | `V3.1.0-GUI` | Primeira interface utilizando GUI Builder |
 | `V3.2.0-GUI` | Integração da interface com a lógica de verificação |
-| `V3.3.0-GUI` | Finalização da aplicação gráfica e preparação para distribuição |
+| `V3.3.0-GUI` | Finalização, compatibilidade e distribuição da aplicação gráfica |
 
 ---
 
 ## 🌿 Estratégia de branches
 
-A partir da `V3.0.0`, o desenvolvimento das interfaces Swing foi dividido em duas linhas.
+A partir da `V3.0.0`, o desenvolvimento das interfaces Swing foi dividido em duas linhas independentes:
 
 ```text
                        V3.0.0
@@ -284,7 +348,7 @@ A branch:
 swing-gui-builder
 ```
 
-utiliza o editor visual do NetBeans.
+utiliza o editor visual do NetBeans para construção da interface.
 
 A branch:
 
@@ -294,7 +358,7 @@ swing-code
 
 é destinada à construção equivalente da interface Swing diretamente por código Java.
 
-Essa estratégia permite comparar posteriormente as duas formas de desenvolvimento.
+Essa estratégia permitirá comparar as duas formas de desenvolvimento mantendo como ponto de partida comum a versão `V3.0.0`.
 
 ---
 
@@ -304,13 +368,16 @@ Essa estratégia permite comparar posteriormente as duas formas de desenvolvimen
 
 Nesta versão:
 
-- `Principal` tornou-se o único ponto de entrada da aplicação;
-- a aplicação gráfica pode ser iniciada diretamente com `Run Project`;
-- `TelaPrincipal` é responsável exclusivamente pela interface;
-- a lógica de negócio continua separada da camada gráfica;
-- `ConsoleUI` permanece como registro da evolução do projeto;
+- `Principal` é o ponto de entrada da aplicação;
+- `TelaPrincipal` é responsável pela interface gráfica;
+- a aplicação pode ser iniciada diretamente com `Run Project`;
+- a lógica de negócio permanece separada da camada gráfica;
+- `ConsoleUI` permanece no projeto como registro da evolução da aplicação;
 - o projeto pode ser clonado e executado em outro ambiente;
-- a estrutura está preparada para comparação com a implementação Swing construída manualmente.
+- o Source/Binary Format foi definido como JDK 17;
+- um JAR executável foi gerado e testado;
+- o JAR de distribuição está disponível na pasta `release/`;
+- a linha de desenvolvimento utilizando GUI Builder está concluída.
 
 ---
 
@@ -322,7 +389,7 @@ Com a linha **GUI Builder** concluída, o desenvolvimento seguirá pela branch:
 swing-code
 ```
 
-A interface será reconstruída utilizando código Java, sem o editor visual do NetBeans.
+A interface será reconstruída utilizando diretamente código Java, sem o editor visual do NetBeans.
 
 O objetivo será implementar funcionalidades equivalentes às versões:
 
@@ -332,7 +399,19 @@ V3.2.0-CODE
 V3.3.0-CODE
 ```
 
-permitindo posteriormente comparar as duas abordagens.
+Ao final, as duas abordagens poderão ser comparadas:
+
+```text
+GUI Builder
+     │
+     ├── construção visual
+     └── arquivos .java + .form
+
+Swing por código
+     │
+     ├── construção programática
+     └── arquivos .java
+```
 
 Melhorias relacionadas à execução assíncrona de operações, como o uso de `SwingWorker`, poderão ser estudadas em versões futuras.
 
