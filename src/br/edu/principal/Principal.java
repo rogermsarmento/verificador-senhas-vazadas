@@ -1,17 +1,25 @@
 package br.edu.principal;
 
-import br.edu.config.AppFactory;
-import br.edu.model.ResultadoVerificacao;
-import br.edu.ui.ConsoleUI;
-import br.edu.verificador.VerificadorSenha;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Scanner;
+import br.edu.ui.swing.TelaPrincipal;
 
 public class Principal {
 
     public static void main(String[] args) {
         
+        java.awt.EventQueue.invokeLater(() -> {
+            new TelaPrincipal().setVisible(true);
+        });
+        
+        /**
+         * O Swing recomenda que a criação/manipulação da interface seja feita na Event Dispatch Thread — EDT.
+         * O invokeLater() está dizendo, de forma simplificada: Swing, execute este código na sua thread de interface.
+         * new TelaPrincipal().setVisible(true)
+         * Primeiro: new TelaPrincipal() cria nossa janela.
+         * .setVisible(true) torna a janela visível. 
+         * 
+         */
+        
+        /*
         try(Scanner sc = new Scanner(System.in)) {
             
             AppFactory appFactory = new AppFactory();
@@ -43,5 +51,6 @@ public class Principal {
                consoleUI.exibirConsultaInterrompida();
             }
         }
+        */
     }
 }
